@@ -45,8 +45,8 @@ $(LIB_STATIC): $(LIB_OBJECTS)
 	$(AR) crs $@ $^
 	$(RANLIB) $@
 
-$(PAM_SMACK): $(PAM_SMACKOBJ)
-	$(CC) $(LDFLAGS) -shared -lpam -o $@ $^
+$(PAM_SMACK): $(PAM_SMACKOBJ) $(LIB_SHARED)
+	$(CC) $(LDFLAGS) -shared -lpam -Xlinker -soname -Xlinker $(PAM_SMACK) -o $@ $(PAM_SMACKOBJ) -L. -lwbsmack
 
 %.o: %.c
 ifeq ($(V), 0)

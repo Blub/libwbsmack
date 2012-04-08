@@ -92,6 +92,7 @@ int main(int argc, char **argv)
 		int fd = open(argv[i], O_RDONLY); //RDWR, but directories don't want that
 		if (fd < 0) {
 			perror("open");
+			fprintf(stderr, "%s: error opening %s\n", argv[0], argv[i]);
 			continue;
 		}
 		/* Disabling this for now.
@@ -128,8 +129,7 @@ int main(int argc, char **argv)
 		{
 			// Update the SMACK label
 			if (fsetxattr(fd, SMACKLABEL, label, labellen, 0) == -1) {
-				// perror("setxattr");
-				fprintf(stderr, "%s: error setting label for %s\n", argv[0], argv[i]);
+				perror("setxattr");
 				goto out;
 			}
 		}

@@ -8,6 +8,7 @@ V_MINOR = 2
 V ?= 0
 
 PREFIX := /usr
+PAMPREFIX := /
 DESTDIR :=
 
 AR ?= ar
@@ -31,7 +32,11 @@ LIB_SOURCES = src/getsmack.c \
               src/smackenabled.c
 LIB_OBJECTS = $(patsubst %.c,%.o,${LIB_SOURCES})
 
-all: $(LIB_SHARED) $(LIB_STATIC)
+PAM_SMACK = pam_wbsmack.so
+PAM_SMACKSRC = pam/pam_wbsmack.c
+PAM_SMACKOBJ = $(patsubst %.c,%.o,${PAM_SMACKSRC})
+
+all: $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK)
 
 $(LIB_SHARED): $(LIB_OBJECTS)
 	$(CC) $(LDFLAGS) -shared -Xlinker -soname -Xlinker $(LIB_SONAME) -o $@ $^
@@ -39,6 +44,9 @@ $(LIB_SHARED): $(LIB_OBJECTS)
 $(LIB_STATIC): $(LIB_OBJECTS)
 	$(AR) crs $@ $^
 	$(RANLIB) $@
+
+$(PAM_SMACK): $(PAM_SMACKOBJ)
+	$(CC) $(LDFLAGS) -shared -lpam -o $@ $^
 
 %.o: %.c
 ifeq ($(V), 0)
@@ -48,18 +56,21 @@ else
 	$(CC) $(CFLAGS) -c -o $*.o $*.c -MMD -MT $@ -MF $*.d
 endif
 
-install:
+install: all
 	install -d -m755               $(DESTDIR)$(PREFIX)/lib
-	install    -m644 $(LIB_STATIC) $(DESTDIR)$(PREFIX)/lib/
-	install    -m644 $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/
+	install    -m755 $(LIB_STATIC) $(DESTDIR)$(PREFIX)/lib/
+	install    -m755 $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/
 	ln -sf $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/$(LIB_SONAME)
 	ln -sf $(LIB_SONAME) $(DESTDIR)$(PREFIX)/lib/$(LIB_SO)
 	install -d -m755               $(DESTDIR)$(PREFIX)/include
 	install    -m644 $(LIB_HEADER) $(DESTDIR)$(PREFIX)/include/
+	install -d -m755               $(DESTDIR)$(PAMPREFIX)/lib/security
+	install    -m755 $(PAM_SMACK)  $(DESTDIR)$(PAMPREFIX)/lib/security/
 
 clean:
-	-rm -f src/*.d
+	-rm -f src/*.d pam/*.d
 	-rm -f $(LIB_SHARED) $(LIB_STATIC)
 	-rm -f $(LIB_OBJECTS)
 
 -include src/*.d
+-include pam/*.d

@@ -48,6 +48,7 @@ endif
 
 install:
 	install -d -m755               $(DESTDIR)$(PREFIX)/lib
+	install    -m644 $(LIB_STATIC) $(DESTDIR)$(PREFIX)/lib/
 	install    -m644 $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/
 	ln -sf $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/$(LIB_SONAME)
 	ln -sf $(LIB_SONAME) $(DESTDIR)$(PREFIX)/lib/$(LIB_SO)

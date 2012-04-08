@@ -128,7 +128,8 @@ int main(int argc, char **argv)
 		{
 			// Update the SMACK label
 			if (fsetxattr(fd, SMACKLABEL, label, labellen, 0) == -1) {
-				perror("setxattr");
+				// perror("setxattr");
+				fprintf(stderr, "%s: error setting label for %s\n", argv[0], argv[i]);
 				goto out;
 			}
 		}

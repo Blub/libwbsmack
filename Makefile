@@ -11,6 +11,8 @@ PREFIX := /usr
 PAMPREFIX := /
 DESTDIR :=
 
+STATIC := 0
+
 AR ?= ar
 RANLIB ?= ranlib
 
@@ -36,7 +38,11 @@ PAM_SMACK = pam_wbsmack.so
 PAM_SMACKSRC = pam/pam_wbsmack.c
 PAM_SMACKOBJ = $(patsubst %.c,%.o,${PAM_SMACKSRC})
 
-all: $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK)
+UCHSMACK = uchsmack
+UCHSMACKSRC = src/uchsmack.c
+UCHSMACKOBJ = $(patsubst %.c,%.o,${UCHSMACKSRC})
+
+all: $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK) $(UCHSMACK)
 
 $(LIB_SHARED): $(LIB_OBJECTS)
 	$(CC) $(LDFLAGS) -shared -Xlinker -soname -Xlinker $(LIB_SONAME) -o $@ $^
@@ -47,6 +53,13 @@ $(LIB_STATIC): $(LIB_OBJECTS)
 
 $(PAM_SMACK): $(PAM_SMACKOBJ) $(LIB_SHARED)
 	$(CC) $(LDFLAGS) -shared -lpam -Xlinker -soname -Xlinker $(PAM_SMACK) -o $@ $(PAM_SMACKOBJ) -L. -lwbsmack
+
+$(UCHSMACK): $(UCHSMACKOBJ)
+ifeq ($(STATIC), 1)
+	$(CC) $(LDFLAGS) -static -o $@ $^ libwbsmack.a
+else
+	$(CC) $(LDFLAGS) -o $@ $^ -L. -lwbsmack
+endif
 
 %.o: %.c
 ifeq ($(V), 0)
@@ -66,11 +79,13 @@ install: all
 	install    -m644 $(LIB_HEADER) $(DESTDIR)$(PREFIX)/include/
 	install -d -m755               $(DESTDIR)$(PAMPREFIX)/lib/security
 	install    -m755 $(PAM_SMACK)  $(DESTDIR)$(PAMPREFIX)/lib/security/
+	install -d -m755               $(DESTDIR)$(PREFIX)/bin
+	install    -m755 $(UCHSMACK)   $(DESTDIR)$(PREFIX)/bin/
 
 clean:
 	-rm -f src/*.d pam/*.d
-	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK)
-	-rm -f $(LIB_OBJECTS)
+	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK) $(UCHSMACK)
+	-rm -f $(LIB_OBJECTS) $(UCHSMACKOBJ) $(PAM_SMACKOBJ)
 
 -include src/*.d
 -include pam/*.d

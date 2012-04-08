@@ -40,6 +40,8 @@ int main(int argc, char **argv)
 	size_t labellen;
 	char self[SMACK_SIZE];
 
+	uid_t myuid = geteuid();
+
 	if (argc == 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h")))
 	{
 		usage(argv[0], stdout, 0);
@@ -62,7 +64,7 @@ int main(int argc, char **argv)
 	labellen = strlen(label);
 	for (i = 2; i < argc; ++i) {
 		char filelabel[SMACK_SIZE];
-		int fd = open(argv[i], O_RDWR);
+		int fd = open(argv[i], O_RDONLY); //RDWR, but directories don't want that
 		if (fd < 0) {
 			perror("open");
 			continue;
@@ -74,13 +76,15 @@ int main(int argc, char **argv)
 			continue;
 		}
 		// Check for write-access to the SMACK label
-		if (fgetxattr(fd, "security.SMACK64", filelabel, sizeof(filelabel)) == -1) {
-			perror("getxattr");
-			goto out;
-		}
-		if (!smackaccess(self, filelabel, "w")) {
-			fprintf(stderr, "%s: no smack access to '%s' for '%s'\n", argv[0], filelabel, self);
-			goto out;
+		if (myuid != 0) {
+			if (fgetxattr(fd, "security.SMACK64", filelabel, sizeof(filelabel)) == -1) {
+				perror("getxattr");
+				goto out;
+			}
+			if (!smackaccess(self, filelabel, "w")) {
+				fprintf(stderr, "%s: no smack access to '%s' for '%s'\n", argv[0], filelabel, self);
+				goto out;
+			}
 		}
 		// Update the SMACK label
 		if (fsetxattr(fd, "security.SMACK64", label, labellen, 0) == -1) {

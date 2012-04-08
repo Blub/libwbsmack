@@ -120,7 +120,7 @@ int main(int argc, char **argv, char **envp)
 	// Find the executable in $PATH:
 	binary = findExe(argv[optind]);
 	if (!binary) {
-		fprintf(stderr, "%s: Cannot find %s\n", argv[0], binary);
+		fprintf(stderr, "%s: Cannot find %s\n", argv[0], argv[optind]);
 		if (label) free(label);
 		exit(1);
 	}

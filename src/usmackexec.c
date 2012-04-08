@@ -73,7 +73,7 @@ int main(int argc, char **argv, char **envp)
 	char mylabel[SMACK_SIZE];
 	int o;
 	int lind = 0;
-	int binfd;
+	//int binfd;
 
 	static struct option lopts[] = {
 		{ "help",  no_argument,       NULL, 'h' },
@@ -125,6 +125,7 @@ int main(int argc, char **argv, char **envp)
 		exit(1);
 	}
 
+	/*
 	// Open first, then use the open fd to check AS WELL as exec using fexecve
 	// to avoid race conditions between checks.
 	binfd = open(binary, O_RDONLY);
@@ -134,9 +135,11 @@ int main(int argc, char **argv, char **envp)
 		if (label) free(label);
 		exit(1);
 	}
+	*/
 
 	// Get the program's label
-	if (fgetxattr(binfd, SMACK_XATTR, filelabel, sizeof(filelabel)) == -1) {
+	//if (fgetxattr(binfd, SMACK_XATTR, filelabel, sizeof(filelabel)) == -1) {
+	if (getxattr(binary, SMACK_XATTR, filelabel, sizeof(filelabel)) == -1) {
 		perror("getxattr");
 		if (label) free(label);
 		free(binary);
@@ -174,16 +177,15 @@ int main(int argc, char **argv, char **envp)
 
 	// Prepare parameters:
 	arglist = (char**)malloc(sizeof(arglist[0]) * (argc - optind + 1));
-	arglist[0] = binary;
+	//arglist[0] = binary;
+	arglist[0] = argv[optind];
 	for (o = optind + 1; o < argc; ++o) {
 		arglist[o - optind] = argv[o];
 	}
 	arglist[o - optind] = NULL;
 
-	printf("%i\n", (int)getuid());
-	printf("%i\n", (int)geteuid());
-
-	fexecve(binfd, arglist, envp);
+	execve(binary, arglist, envp);
+	//fexecve(binfd, arglist, envp);
 	perror("exec");
 	exit(1);
 	return 1;

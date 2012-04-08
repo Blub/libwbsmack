@@ -95,11 +95,6 @@ int main(int argc, char **argv)
 			fprintf(stderr, "%s: error opening %s\n", argv[0], argv[i]);
 			continue;
 		}
-		/* Disabling this for now.
-		 * A user should be able to change the label of a file within a folder
-		 * he has write-access to.
-		 * DAC will make sure the user doesn't change any *other* labels.
-		 */
 		// Lock
 		if (flock(fd, LOCK_EX) != 0) {
 			if (errno == EPERM) {

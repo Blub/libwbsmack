@@ -159,29 +159,6 @@ int main(int argc, char **argv, char **envp)
 		exit(1);
 	}
 
-	// Drop CAP_MAC_{ADMIN,OVERRIDE} if it is not in our inheriable set
-#if 0
-	{
-		cap_flag_value_t todrop[] = { CAP_MAC_ADMIN, CAP_MAC_OVERRIDE };
-		int i;
-
-		cap_t caps;
-		cap_flag_value_t capvalue;
-		caps = cap_get_proc();
-
-		for (i = 0; i < (sizeof(todrop) / sizeof(todrop[0])); ++i)
-		{
-			if (cap_get_flag(caps, todrop[i], CAP_INHERITABLE, &capvalue) != 0) {
-				perror("cap_get_flag");
-				if (label) free(label);
-				exit(1);
-			}
-			if (capvalue)
-				continue;
-		}
-	}
-#endif
-
 	// Set smack label:
 	if (label) {
 		if (setsmack(label) == -1) {

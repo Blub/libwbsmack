@@ -59,7 +59,7 @@ install:
 
 clean:
 	-rm -f src/*.d
-	-rm -f $(LIB_SONAME) $(LIB_STATIC)
+	-rm -f $(LIB_SHARED) $(LIB_STATIC)
 	-rm -f $(LIB_OBJECTS)
 
 -include src/*.d

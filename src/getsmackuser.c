@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdlib.h>
 //include <ctype.h> <- No. This can be influenced by locales
 
 #include "smack.h"
@@ -65,7 +66,7 @@ int getsmackuser_r(const char *username, struct smackuser *out,
 			++inl;
 
 		if (!*inl)
-			return;
+			continue;
 
 		// extract label:
 		labelstart = inl;

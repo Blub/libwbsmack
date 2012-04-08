@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-int smackenabled(void) {
+int smackenabled(void)
+{
 	FILE *fp;
 	size_t len;
 	char *buf = NULL;

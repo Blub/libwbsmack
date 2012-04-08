@@ -32,7 +32,7 @@ LIB_OBJECTS = $(patsubst %.c,%.o,${LIB_SOURCES})
 all: $(LIB_SHARED) $(LIB_STATIC)
 
 $(LIB_SHARED): $(LIB_OBJECTS)
-	$(CC) $(LDFLAGS) -shared -Xlinker -soname -Xlinker $@ -o $@ $^
+	$(CC) $(LDFLAGS) -shared -Xlinker -soname -Xlinker $(LIB_SONAME) -o $@ $^
 
 $(LIB_STATIC): $(LIB_OBJECTS)
 	$(AR) crs $@ $^

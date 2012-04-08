@@ -69,7 +69,7 @@ install: all
 
 clean:
 	-rm -f src/*.d pam/*.d
-	-rm -f $(LIB_SHARED) $(LIB_STATIC)
+	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK)
 	-rm -f $(LIB_OBJECTS)
 
 -include src/*.d

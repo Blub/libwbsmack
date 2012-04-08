@@ -186,6 +186,8 @@ int main(int argc, char **argv, char **envp)
 			}
 			exit(WEXITSTATUS(st));
 		}
+		if (getuid() != geteuid())
+			seteuid(getuid());
 	}
 
 

@@ -180,6 +180,9 @@ int main(int argc, char **argv, char **envp)
 	}
 	arglist[o - optind] = NULL;
 
+	printf("%i\n", (int)getuid());
+	printf("%i\n", (int)geteuid());
+
 	fexecve(binfd, arglist, envp);
 	perror("exec");
 	exit(1);

@@ -35,6 +35,7 @@ char *findExe(const char *bin)
 	path = getenv("PATH");
 	if (!path)
 		return strdup(bin);
+	path = strdup(path);
 
 	binlen = strlen(bin);
 
@@ -53,9 +54,12 @@ char *findExe(const char *bin)
 		fullpath[toklen] = '/';
 		memcpy(fullpath + toklen + 1, bin, binlen);
 		fullpath[toklen + 1 + binlen] = 0;
-		if (access(fullpath, X_OK) == 0)
+		if (access(fullpath, X_OK) == 0) {
+			free(path);
 			return fullpath;
+		}
 	}
+	free(path);
 	free(fullpath);
 	return NULL;
 }
@@ -193,7 +197,7 @@ int main(int argc, char **argv, char **envp)
 
 	// Prepare parameters:
 	arglist = (char**)malloc(sizeof(arglist[0]) * (argc - optind + 1));
-	arglist[o - optind] = binary;
+	arglist[0] = binary;
 	for (o = optind + 1; o < argc; ++o) {
 		arglist[o - optind] = argv[o];
 	}

@@ -6,6 +6,7 @@
 #include <linux/capability.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <sys/xattr.h>
 
@@ -21,7 +22,7 @@ static void usage(const char *arg0, FILE *target, int exitstatus)
 	exit(exitstatus);
 }
 
-char *findExe(const char *bin)
+static char *findExe(const char *bin)
 {
 	char *path;
 	char *tok;
@@ -174,6 +175,19 @@ int main(int argc, char **argv, char **envp)
 		perror("setsmack");
 		exit(1);
 	}
+
+	{
+		pid_t pid = fork();
+		if (pid) {
+			int st;
+			free(binary);
+			while (waitpid(pid, &st, 0) != pid) {
+				perror("wait");
+			}
+			exit(WEXITSTATUS(st));
+		}
+	}
+
 
 	// Prepare parameters:
 	arglist = (char**)malloc(sizeof(arglist[0]) * (argc - optind + 1));

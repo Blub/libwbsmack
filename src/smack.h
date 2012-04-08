@@ -17,6 +17,7 @@
 /* Control file locations */
 #define SMACK_LOAD "/smack/load"
 #define SMACK_CIPSO "/smack/cipso"
+#define SMACK_ACCESS "/smack/access"
 
 #define SMACK_PROCSELFATTRCURRENT "/proc/self/attr/current"
 

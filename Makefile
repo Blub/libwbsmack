@@ -7,6 +7,9 @@ V_MAJOR = 0
 V_MINOR = 2
 V ?= 0
 
+PREFIX := /usr
+DESTDIR :=
+
 AR ?= ar
 RANLIB ?= ranlib
 
@@ -14,8 +17,10 @@ CFLAGS = -Wall -Werror -g -O2 -fPIC
 LDFLAGS = -fPIC
 
 LIB_STATIC = libarchsmack.a
+LIB_SO     = libarchsmack.so
 LIB_SONAME = libarchsmack.so.$(V_MAJOR)
 LIB_SHARED = libarchsmack.so.$(V_MAJOR).$(V_MINOR)
+LIB_HEADER = src/smack.h
 
 LIB_SOURCES = src/getsmack.c \
               src/getsmackuser.c \
@@ -24,9 +29,9 @@ LIB_SOURCES = src/getsmack.c \
               src/smackenabled.c
 LIB_OBJECTS = $(patsubst %.c,%.o,${LIB_SOURCES})
 
-all: $(LIB_SONAME) $(LIB_STATIC)
+all: $(LIB_SHARED) $(LIB_STATIC)
 
-$(LIB_SONAME): $(LIB_OBJECTS)
+$(LIB_SHARED): $(LIB_OBJECTS)
 	$(CC) $(LDFLAGS) -shared -Xlinker -soname -Xlinker $@ -o $@ $^
 
 $(LIB_STATIC): $(LIB_OBJECTS)
@@ -40,6 +45,14 @@ ifeq ($(V), 0)
 else
 	$(CC) $(CFLAGS) -c -o $*.o $*.c -MMD -MT $@ -MF $*.d
 endif
+
+install:
+	install -d -m755               $(DESTDIR)$(PREFIX)/lib
+	install    -m644 $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/
+	ln -sf $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/$(LIB_SONAME)
+	ln -sf $(LIB_SONAME) $(DESTDIR)$(PREFIX)/lib/$(LIB_SO)
+	install -d -m755               $(DESTDIR)$(PREFIX)/include
+	install    -m644 $(LIB_HEADER) $(DESTDIR)$(PREFIX)/include/
 
 clean:
 	-rm -f .deps.*.d

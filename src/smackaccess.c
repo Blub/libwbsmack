@@ -36,7 +36,8 @@ int smackaccess(char *subject, char *object, char *access)
 	int fd;
 	int i;
 
-	for (i = 0; i < sizeof(data.data.access); ++i)
+	memset(&data, 0, sizeof(data));
+	for (i = 0; i < 5; ++i)
 		data.data.access[i] = '-';
 
 	for (i = 0; access[i] != '\0'; i++) {
@@ -73,17 +74,19 @@ int smackaccess(char *subject, char *object, char *access)
 		return 0;
 
 	if (sizeof(data) != write(fd, &data, sizeof(data))) {
+		//perror("write");
 		errno = EINVAL;
 		close(fd);
 		return 0;
 	}
 
 	if (read(fd, &data, sizeof(data)) < 1) {
+		//perror("read");
 		errno = 0;
 		close(fd);
 		return 0;
 	}
 	close(fd);
 
-	return (data.result == '1');
+	return (data.result == '1') ? 1 : 0;
 }

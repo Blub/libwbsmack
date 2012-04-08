@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	cap_t caps;
 	cap_flag_value_t capvalue = 0;
 
-	uid_t myuid = geteuid();
+	// uid_t myuid = geteuid();
 
 	if (argc == 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h")))
 	{
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 	labellen = strlen(label);
 	for (i = 2; i < argc; ++i) {
 #if 1
-		char filelabel[SMACK_SIZE];
+		//char filelabel[SMACK_SIZE];
 		int fd = open(argv[i], O_RDONLY); //RDWR, but directories don't want that
 		if (fd < 0) {
 			perror("open");

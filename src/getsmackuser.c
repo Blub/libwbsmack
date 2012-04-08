@@ -77,11 +77,19 @@ int getsmackuser_r(const char *username, struct smackuser *out,
 		if (!buffer)
 		{
 			out->su_name = strdup(userstart);
-			out->su_label = strdup(labelstart);
-			if (!out->su_name || !out->su_label)
+			if (!out->su_name) {
 				errno = ENOMEM;
-			else
-				retval = 0;
+				retval = -1;
+				break;
+			}
+			out->su_label = strdup(labelstart);
+			if (!out->su_label) {
+				free((void*)su->su_name);
+				errno = ENOMEM;
+				retval = -1;
+				break;
+			}
+			retval = 0;
 			break;
 		}
 		else

@@ -56,9 +56,9 @@ $(PAM_SMACK): $(PAM_SMACKOBJ) $(LIB_SHARED)
 
 $(UCHSMACK): $(UCHSMACKOBJ) $(LIB_SHARED)
 ifeq ($(STATIC), 1)
-	$(CC) $(LDFLAGS) -static -o $@ $(UCHSMACKOBJ) libwbsmack.a
+	$(CC) $(LDFLAGS) -lcap -static -o $@ $(UCHSMACKOBJ) libwbsmack.a
 else
-	$(CC) $(LDFLAGS) -o $@ $(UCHSMACKOBJ) -L. -lwbsmack
+	$(CC) $(LDFLAGS) -lcap -o $@ $(UCHSMACKOBJ) -L. -lwbsmack
 endif
 
 %.o: %.c

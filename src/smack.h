@@ -79,7 +79,7 @@ int setsmack(const char *label);
  *
  * This requires permission to read /smack/load.
  */
-int smackaccess(char *subject, char *object, char *access);
+int smackaccess(const char *subject, const char *object, char *access);
 
 /**
  * Check if SMACK is enabled.

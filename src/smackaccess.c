@@ -22,7 +22,7 @@
 
 #include "smack.h"
 
-int smackaccess(char *subject, char *object, char *access)
+int smackaccess(const char *subject, const char *object, char *access)
 {
 	union {
 		struct {
@@ -39,6 +39,9 @@ int smackaccess(char *subject, char *object, char *access)
 	memset(&data, 0, sizeof(data));
 	for (i = 0; i < 5; ++i)
 		data.data.access[i] = '-';
+
+	strncpy(data.data.subject, subject, sizeof(data.data.subject));
+	strncpy(data.data.object, object, sizeof(data.data.object));
 
 	for (i = 0; access[i] != '\0'; i++) {
 		switch (access[i]) {

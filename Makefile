@@ -54,11 +54,11 @@ $(LIB_STATIC): $(LIB_OBJECTS)
 $(PAM_SMACK): $(PAM_SMACKOBJ) $(LIB_SHARED)
 	$(CC) $(LDFLAGS) -shared -lpam -Xlinker -soname -Xlinker $(PAM_SMACK) -o $@ $(PAM_SMACKOBJ) -L. -lwbsmack
 
-$(UCHSMACK): $(UCHSMACKOBJ)
+$(UCHSMACK): $(UCHSMACKOBJ) $(LIB_SHARED)
 ifeq ($(STATIC), 1)
-	$(CC) $(LDFLAGS) -static -o $@ $^ libwbsmack.a
+	$(CC) $(LDFLAGS) -static -o $@ $(UCHSMACKOBJ) libwbsmack.a
 else
-	$(CC) $(LDFLAGS) -o $@ $^ -L. -lwbsmack
+	$(CC) $(LDFLAGS) -o $@ $(UCHSMACKOBJ) -L. -lwbsmack
 endif
 
 %.o: %.c

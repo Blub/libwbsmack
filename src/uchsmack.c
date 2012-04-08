@@ -71,7 +71,10 @@ int main(int argc, char **argv)
 		}
 		// Lock
 		if (flock(fd, LOCK_EX) != 0) {
-			perror("lock");
+			if (errno == EPERM) {
+				fprintf(stderr, "%s: no access to for '%s'\n", argv[0], self);
+			} else
+				perror("lock");
 			close(fd);
 			continue;
 		}

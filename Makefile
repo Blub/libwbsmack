@@ -16,10 +16,12 @@ RANLIB ?= ranlib
 CFLAGS = -Wall -Werror -g -O2 -fPIC
 LDFLAGS = -fPIC
 
-LIB_STATIC = libarchsmack.a
-LIB_SO     = libarchsmack.so
-LIB_SONAME = libarchsmack.so.$(V_MAJOR)
-LIB_SHARED = libarchsmack.so.$(V_MAJOR).$(V_MINOR)
+LIBNAME = wbsmack
+
+LIB_STATIC = lib$(LIBNAME).a
+LIB_SO     = lib$(LIBNAME).so
+LIB_SONAME = lib$(LIBNAME).so.$(V_MAJOR)
+LIB_SHARED = lib$(LIBNAME).so.$(V_MAJOR).$(V_MINOR)
 LIB_HEADER = src/smack.h
 
 LIB_SOURCES = src/getsmack.c \
@@ -56,7 +58,7 @@ install:
 	install    -m644 $(LIB_HEADER) $(DESTDIR)$(PREFIX)/include/
 
 clean:
-	-rm -f .deps.*.d
+	-rm -f src/*.d
 	-rm -f $(LIB_SONAME) $(LIB_STATIC)
 	-rm -f $(LIB_OBJECTS)
 

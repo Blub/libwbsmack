@@ -19,6 +19,8 @@
 #define SMACK_CIPSO "/smack/cipso"
 #define SMACK_ACCESS "/smack/access"
 
+#define SMACK_XATTR "security.SMACK64"
+
 #define SMACK_PROCSELFATTRCURRENT "/proc/self/attr/current"
 
 #define SMACK_USERS "/etc/smack/usr"

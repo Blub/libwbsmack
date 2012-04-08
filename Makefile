@@ -42,7 +42,11 @@ UCHSMACK = uchsmack
 UCHSMACKSRC = src/uchsmack.c
 UCHSMACKOBJ = $(patsubst %.c,%.o,${UCHSMACKSRC})
 
-all: $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK) $(UCHSMACK)
+USMACKEXEC = usmackexec
+USMACKEXECSRC = src/usmackexec.c
+USMACKEXECOBJ = $(patsubst %.c,%.o,${USMACKEXECSRC})
+
+all: $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK) $(UCHSMACK) $(USMACKEXEC)
 
 $(LIB_SHARED): $(LIB_OBJECTS)
 	$(CC) $(LDFLAGS) -shared -Xlinker -soname -Xlinker $(LIB_SONAME) -o $@ $^
@@ -59,6 +63,13 @@ ifeq ($(STATIC), 1)
 	$(CC) $(LDFLAGS) -lcap -static -o $@ $(UCHSMACKOBJ) libwbsmack.a
 else
 	$(CC) $(LDFLAGS) -lcap -o $@ $(UCHSMACKOBJ) -L. -lwbsmack
+endif
+
+$(USMACKEXEC): $(USMACKEXECOBJ) $(LIB_SHARED)
+ifeq ($(STATIC), 1)
+	$(CC) $(LDFLAGS) -lcap -static -o $@ $(USMACKEXECOBJ) libwbsmack.a
+else
+	$(CC) $(LDFLAGS) -lcap -o $@ $(USMACKEXECOBJ) -L. -lwbsmack
 endif
 
 %.o: %.c
@@ -81,6 +92,7 @@ install: all
 	install    -m755 $(PAM_SMACK)  $(DESTDIR)$(PAMPREFIX)/lib/security/
 	install -d -m755               $(DESTDIR)$(PREFIX)/bin
 	install    -m755 $(UCHSMACK)   $(DESTDIR)$(PREFIX)/bin/
+	install    -m755 $(USMACKEXEC) $(DESTDIR)$(PREFIX)/bin/
 
 clean:
 	-rm -f src/*.d pam/*.d

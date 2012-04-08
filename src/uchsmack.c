@@ -11,7 +11,7 @@
 
 #include "smack.h"
 
-#define SMACKLABEL "security.SMACK64"
+#define SMACKLABEL SMACK_XATTR
 
 /* Change the smack label for a file - provided we have access to it.
  */

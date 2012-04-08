@@ -8,6 +8,9 @@
 #define SMACK_FLOOR "_"
 #define SMACK_HAT "^"
 
+#define SMACK_OACCESSLEN (sizeof("rwxa") - 1)
+#define SMACK_ACCESSLEN (sizeof("rwxat") - 1)
+
 /* The default label */
 #define SMACK_DEFAULT SMACK_FLOOR
 

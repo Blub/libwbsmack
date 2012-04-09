@@ -37,6 +37,13 @@ struct smackuser {
 	char *su_label; ///< The smack label.
 };
 
+struct smackentry {
+	const char *su_name;
+	const char **su_labels;
+	size_t su_labelcount;
+	size_t _su_allocated;
+};
+
 /* This function was written quite horribly, and is now replaced
    by something more sane...
    For instance, it used getline on the provided buffer which may
@@ -59,6 +66,24 @@ int getsmackuser_r(const char *name, struct smackuser *su,
  */
 int getsmackuser_r(const char *username, struct smackuser *out,
                    char *buffer, size_t buflen);
+
+/**
+ * Get the users from a smack user entry.
+ * Must be closed with closesmackentry().
+ */
+struct smackentry* opensmackentry(const char *username);
+
+/**
+ * Get a label from a smackentry.
+ * Returns NULL if index >= number of label entries.
+ */
+const char *smackentryget(struct smackentry const * entry, size_t index);
+
+/**
+ * Close an opened smackuser entry.
+ */
+void closesmackentry(struct smackentry *entry);
+
 
 /**
  * Retrieve the smack label of the current process.

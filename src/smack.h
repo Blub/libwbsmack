@@ -38,9 +38,10 @@ struct smackuser {
 };
 
 struct smackentry {
-	char *su_name;
-	char **su_labels;
-	size_t su_labelcount;
+	char *su_name; ///< The username
+	char **su_labels; ///< A list of labels accessible via smackentryget
+	size_t su_labelcount; ///< The number of labels stored in su_labels
+	int  su_any; ///< 1 if the user can take on any label
 	size_t _su_allocated;
 };
 

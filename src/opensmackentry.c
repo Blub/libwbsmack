@@ -47,6 +47,13 @@ void closesmackentry(struct smackentry *entry)
 	free((void*)entry);
 }
 
+const char *smackentryget(const struct smackentry *entry, size_t index)
+{
+	if (index >= entry->su_labelcount)
+		return NULL;
+	return entry->su_labels[index];
+}
+
 struct smackentry* opensmackentry(const char *username)
 {
 	FILE *fp;

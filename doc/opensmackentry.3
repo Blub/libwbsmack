@@ -1,0 +1,74 @@
+.\" Process with groff -man -Tascii file.3
+.TH OPENSMACKENTRY 3 2012-04-09 "" "wbSmack Manual"
+.SH NAME
+opensmackentry, smackentryget, smackentrycontains, closesmackentry \- \
+get a more detailed smack user entry
+.SH SYNOPSIS
+.B #include <smack.h>
+.sp
+.BI "struct smackentry* opensmackentry(const char *" username );
+.sp
+.BI "const char* smackentryget(struct smackentry const *" entry ", size_t " index );
+.sp
+.BI "int smackentrycontains(struct smackentry const *" entry ", const char *" label );
+.sp
+Link with \fI-lwbsmack\fP.
+.SH DESCRIPTION
+The functions related to
+.I struct smackentry
+provide access to the additional labels specified for a user in
+.I /etc/smack/usr
+and contains a boolean value specifying whether or not a
+.B *ALL
+label was specified for the user, stating that the user is allowed
+to take on any label. (Usually used for root).
+.PP
+.BR opensmackentry ()
+looks for the specified user, and if found, returns a pointer to a
+.I struct smackentry
+containing all the necessary information. The pointer has to be
+passed to
+.BR closesmackentry ()
+when it is no longer required.
+If no user was found,
+.B NULL
+is returned.
+.PP
+.in +4n
+.nf
+struct smackentry {
+    char*  _su_name;       /* The smack username. */
+    char** _su_labels;     /* All labels listed for a user. */
+    size_t _su_labelcount; /* The number of labels found. */
+    int    su_any;        /* 1 if the user has acess to all labels. */
+    /* reserved space follows */
+};
+.fi
+.in
+Direct use of any member other than
+.I su_any
+is
+.B strongly discouraged!
+.PP
+.BR closesmackentry ()
+deallocates a smackentry and all its underlying data. Any pointers
+returned by the convenience function
+.BR smackentryget ()
+become
+.I invalid
+after this call.
+.PP
+.BR smackentryget ()
+returns a label from the provided structure, or
+.B NULL
+if the index is out of range. Use this function rather than accessing
+the members directly.
+.PP
+.BR smackentrycontains ()
+returns 1 if the provided label is found in the provided smack entry,
+0 otherwise.
+.SH FILES
+.TP
+.B /etc/smack/usr
+.SH SEE ALSO
+.BR getsmackuser_r (3)

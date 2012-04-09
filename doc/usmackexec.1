@@ -1,0 +1,40 @@
+.\" Process with groff -man -Tascii file.3
+.TH USMACKEXEC 1 2012-04-09 "" "wbSmack Manual"
+.SH NAME
+usmackexec \- Execute under a different smack-label
+.SH SYNOPSIS
+.B usmackexec
+[\fIOPTION\fR] command [\fIparameters...\fR]
+.SH DESCRIPTION
+Execute a command using the command's, or a provided smack label,
+if so permitted by the system.
+.TP
+.BI "-l, --label=" LABEL
+Use the specified label, rather than the executable's label.
+.PP
+For the program to allow execution of the command, the following
+conditions must be met:
+.TP
+A transition rule must be present, allowing transition from the
+current to the target label. (to clarify:
+LABEL if provided, or the executable's label otherwise).
+.TP
+The caller must have execute-access to the target label.
+.TP
+If a LABEL was specified, then that LABEL must also have execute
+permission on the executable's label. This is enforced by the kernel
+but checked by the program to print a clearer error message.
+.SH FILES
+.TP
+.B /smack/access
+.TP
+.B /etc/smack/accesses
+.TP
+.B /etc/smack/transition
+.SH DIRECTORIES
+.TP
+.B /etc/smack/accesses.d
+.TP
+.B /etc/smack/transition.d
+.SH SEE ALSO
+.BR uchsmack (1)

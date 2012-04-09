@@ -1,0 +1,25 @@
+.\" Process with groff -man -Tascii file.3
+.TH UCHSMACK 1 2012-04-09 "" "wbSmack Manual"
+.SH NAME
+uchsmack \- Change the smack label of files
+.SH SYNOPSIS
+.B uchsmack
+label file1 [file2...]
+.SH DESCRIPTION
+Change the smack-label of files. This is only allowed when the
+user has write-access to the provided label.
+This program should
+.SH FILES
+.TP
+.B /smack/access
+.TP
+.B /etc/smack/accesses
+.TP
+.B /etc/smack/transition
+.SH DIRECTORIES
+.TP
+.B /etc/smack/accesses.d
+.TP
+.B /etc/smack/transition.d
+.SH SEE ALSO
+.BR usmackexec (1)

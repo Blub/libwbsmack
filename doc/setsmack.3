@@ -1,0 +1,26 @@
+.\" Process with groff -man -Tascii file.3
+.TH SETSMACK 3 2012-04-09 "" "wbSmack Manual"
+.SH NAME
+setsmack \- set the current process' smack label
+.SH SYNOPSIS
+.B #include <smack.h>
+.sp
+.BI "int setsmack(char *" buffer );
+.sp
+Link with \fI-lwbsmack\fP.
+.SH DESCRIPTION
+Attempts to change the smack label of the current caller
+by writing it to \fI/proc/self/attr/current\fP.
+This requires the
+.I CAP_MAC_ADMIN
+capability, otherwise the function fails with a return value
+of -1, and
+.I errno
+was set by the underlying
+.B write(2)
+call.
+.SH RETURN VALUE
+.BR setsmack ()
+returns zero on success, and -1 on failure.
+.SH SEE ALSO
+.BR getsmack (3)

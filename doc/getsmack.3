@@ -1,0 +1,29 @@
+.\" Process with groff -man -Tascii file.3
+.TH GETSMACK 3 2012-04-09 "" "wbSmack Manual"
+.SH NAME
+getsmack \- get the current process' smack label
+.SH SYNOPSIS
+.B #include <smack.h>
+.sp
+.BI "int getsmack(char *" buffer ", size_t " bufsize );
+.sp
+Link with \fI-lwbsmack\fP.
+.SH DESCRIPTION
+Reads the smack label of the caller from, and stores it
+in the provided buffer, provided that the buffer is big
+enough, in which case -1 is returned and
+.I errno
+is set to
+.BR ENOMEM .
+.SH RETURN VALUE
+.BR getsmack ()
+returns zero on success, and -1 on failure.
+.PP
+On failure,
+.I errno
+is set to
+.BR EINVAL
+or
+.BR ENOMEM .
+.SH SEE ALSO
+.BR setsmack (3)

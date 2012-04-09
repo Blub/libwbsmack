@@ -1,0 +1,58 @@
+.\" Process with groff -man -Tascii file.3
+.TH GETSMACKUSER_R 3 2012-04-09 "" "wbSmack Manual"
+.SH NAME
+getsmackuser_r \- get a smackuser entry
+.SH SYNOPSIS
+.B #include <smack.h>
+.sp
+.BI "int getsmackuser_r(const char *" username ", \
+struct smackuser *" out ", \
+char *" buffer ", \
+size_t " buflen );
+.sp
+Link with \fI-lwbsmack\fP.
+.SH DESCRIPTION
+Reads /etc/smack/usr to find the smackuser entry. If a buffer
+is provided, the smackuser structure's members will reside
+completely inside that buffer, provided it is big enough, otherwise
+-1 is returned and
+.I errno
+is set to
+.BR ENOMEM .
+If
+.I buffer
+is
+.BR NULL
+then each member of the output structure is allocated seperately,
+and must be freed by the caller using
+.BR free (3).
+.PP
+.in +4n
+.nf
+struct smackuser {
+    char *su_name;  /* The smack username. */
+    char *su_label; /* The user's default smack label. */
+};
+.fi
+.in
+.SH RETURN VALUE
+.BR getsmackuser_r ()
+returns zero on success, or -1 on failure.
+.SH ERRORS
+.TP
+.B ENOMEM
+Buffer too small, or out of memory.
+.TP
+.B ENOENT
+No entry for the user was found in the user file.
+.TP
+.B ENOSYS
+The file containing users was not found.
+.SH FILES
+.TP
+.B /etc/smack/usr
+.SH SEE ALSO
+.BR opensmackentry (3),
+.BR closesmackentry (3),
+.BR smackentrycontains (3),
+.BR smackentryget (3)

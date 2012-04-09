@@ -1,0 +1,58 @@
+.\" Process with groff -man -Tascii file.3
+.TH SMACKACCESS 3 2012-04-09 "" "wbSmack Manual"
+.SH NAME
+smackaccess, smackchecktrans \- Check smack access rights
+.SH SYNOPSIS
+.B #include <smack.h>
+.sp
+.BI "int smackaccess(const char *" subject ", const char *" object ", char *" access );
+.sp
+.BI "int smackchecktrans(const char *" subject, ", const char *" object );
+.sp
+Link with \fI-lwbsmack\fP.
+.SH DESCRIPTION
+.BR smackaccess ()
+uses smackfs'
+.I /smack/access
+interface to check if the
+.I subject
+has
+.B all
+the access rights on
+.I object
+specified in
+.I access
+, which can be a string containings any of the letters
+r, w, x, a, t (case insensitive).
+.PP
+.BR smackchecktrans ()
+reads the transition-related files in
+.I /etc/smack
+to find out whether or not it is valid for the
+.I subject
+to transition to the label provided in
+.IR object .
+The userspace tool
+.BR usmackexec (1)
+makes use of this function to not allow random label changes.
+.SH RETURN VALUE
+Both functions return 1 if the check succeeds positively (and allows the
+access or transition), and 0 otherwise.
+.SH FILES
+.TP
+.B /smack/load
+.TP
+.B /smack/access
+.TP
+.B /etc/smack/accesses
+.TP
+.B /etc/smack/transition
+.SH DIRECTORIES
+.TP
+.B /etc/smack/accesses.d
+.TP
+.B /etc/smack/transition.d
+.SH SEE ALSO
+.BR getsmackuser_r (3),
+.BR usmackexec (1),
+.BR uchsmack (1)

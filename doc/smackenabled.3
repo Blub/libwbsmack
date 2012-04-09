@@ -1,0 +1,21 @@
+.\" Process with groff -man -Tascii file.3
+.TH SMACKENABLED 3 2012-04-09 "" "wbSmack Manual"
+.SH NAME
+smackenabled \- check if smack is enabled
+.SH SYNOPSIS
+.B #include <smack.h>
+.sp
+.BI "int smackenabled(void);"
+.sp
+Link with \fI-lwbsmack\fP.
+.SH DESCRIPTION
+Check if SMACK was enabled. This is implemented by scanning
+.I /proc/mounts
+for a
+.I smackfs
+mount.
+.SH RETURN VALUE
+.BR smackenabled ()
+returns 1 if smack is enabled, 0 otherwise.
+.SH SEE ALSO
+.BR getsmack (3)

@@ -240,6 +240,13 @@ int smackchecktrans(const char *subject, const char *object)
 
 	time_t now = time(NULL);
 
+#ifdef SMACK_TRANSITION_DIR
+	if (SMACK_TRANSITION_DIR[0] != '/') {
+		fprintf(stderr, "SMACK_TRANSITION_DIR is not an absolute path. Denying ALL transitions!\n");
+		return 0;
+	}
+#endif
+
 	if (checkcache(now, &allowed, &forbidden)) {
 		// no need to reload
 		return forbidden ? 0 : allowed;

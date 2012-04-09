@@ -114,12 +114,6 @@ int main(int argc, char **argv, char **envp)
 	int lind = 0;
 	//int binfd;
 
-	if (NULL != getenv("LD_PRELOAD")) {
-		fprintf(stderr, "Refusing to run.\n");
-		exit(1);
-		return 1;
-	}
-
 	static struct option lopts[] = {
 		{ "help",  no_argument,       NULL, 'h' },
 		{ "label", required_argument, NULL, 'l' },

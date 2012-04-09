@@ -49,12 +49,6 @@ int main(int argc, char **argv)
 	cap_flag_value_t capvalue = 0;
 	int remove_label = 0;
 
-	if (NULL != getenv("LD_PRELOAD")) {
-		fprintf(stderr, "Refusing to run.\n");
-		exit(1);
-		return 1;
-	}
-
 	// uid_t myuid = geteuid();
 
 	if (argc == 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h")))
@@ -86,6 +80,27 @@ int main(int argc, char **argv)
 		perror("cap_get_flag");
 		exit(1);
 	}
+
+	// If our euid is not root however, we are using a setuid binary,
+	// In any case we can drop any capability except CAP_MAC_ADMIN.
+	if (getuid() != geteuid())
+	{
+		cap_value_t what = CAP_MAC_ADMIN;
+		capvalue = 1;
+		caps = cap_init();
+		if (cap_set_flag(caps, CAP_PERMITTED, 1, &what, capvalue) != 0 ||
+		    cap_set_flag(caps, CAP_EFFECTIVE, 1, &what, capvalue) != 0 )
+		{
+			fprintf(stderr, "%s: cap_set_flag failed for some reason.\n", argv[0]);
+			exit(1);
+		}
+		if (cap_set_proc(caps) != 0) {
+			perror("cap_set_proc");
+			fprintf(stderr, "%s: failed to drop privileges, aborting\n", argv[0]);
+			exit(1);
+		}
+	}
+
 	// To remove a label we must have write access to the file's label
 	if (!remove_label && !capvalue && (!smackaccess(self, label, "w"))) {
 		fprintf(stderr, "%s: No write access for subject '%s' to object '%s'\n",

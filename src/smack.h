@@ -81,6 +81,12 @@ struct smackentry* opensmackentry(const char *username);
 const char *smackentryget(struct smackentry const * entry, size_t index);
 
 /**
+ * Test whether or not a label is listed.
+ * returns 1 if the label is listed or the '*ANY' label was added.
+ */
+int smackentrycontains(struct smackentry const * entry, const char *label);
+
+/**
  * Close an opened smackuser entry.
  */
 void closesmackentry(struct smackentry *entry);

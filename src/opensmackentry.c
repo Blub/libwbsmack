@@ -30,7 +30,7 @@ static struct smackentry* newentry(const char *username)
 
 static void addentry(struct smackentry *entry, const char *label)
 {
-	if (label && label[0] == '*' && label[1] == '\0') {
+	if (!strcmp(label, "*ANY")) {
 		entry->su_any = 1;
 		return;
 	}
@@ -52,11 +52,23 @@ void closesmackentry(struct smackentry *entry)
 	free((void*)entry);
 }
 
-const char *smackentryget(const struct smackentry *entry, size_t index)
+const char *smackentryget(struct smackentry const *entry, size_t index)
 {
 	if (index >= entry->su_labelcount)
 		return NULL;
 	return entry->su_labels[index];
+}
+
+int smackentrycontains(struct smackentry const *entry, const char *label)
+{
+	size_t i;
+	if (entry->su_any)
+		return 1;
+	for (i = 0; i < entry->su_labelcount; ++i) {
+		if (!strcmp(label, entry->su_labels[i]))
+			return 1;
+	}
+	return 0;
 }
 
 struct smackentry* opensmackentry(const char *username)

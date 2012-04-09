@@ -23,6 +23,8 @@ typedef struct filecache_s {
 	struct filecache_s *next;
 } filecache_t;
 
+#define VALID_TRANSITION_D_ENTRY(x) ( (x)[0] && (x)[0] != '.' )
+
 static rule_t *rules;
 #ifdef SMACK_TRANSITION_FILE
 static filecache_t fc_file = { {0}, 0 };
@@ -191,6 +193,10 @@ static int checkcache(time_t now, int *allowed, int *forbidden)
 			if (entry->d_type != DT_REG)
 				continue;
 
+			// check for some validity (eg. ignore files starting with a dot)
+			if (!VALID_TRANSITION_D_ENTRY(entry->d_name))
+				continue;
+
 			// find it in cache:
 			for (fi = fc_dir; fi; fi = fi->next)
 			{
@@ -273,6 +279,10 @@ int smackchecktrans(const char *subject, const char *object)
 		{
 			// only read regular files
 			if (entry->d_type != DT_REG)
+				continue;
+
+			// check for some validity (eg. ignore files starting with a dot)
+			if (!VALID_TRANSITION_D_ENTRY(entry->d_name))
 				continue;
 
 			// read

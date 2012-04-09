@@ -20,7 +20,7 @@
 #define SMACK_ACCESS "/smack/access"
 
 #define SMACK_TRANSITION_FILE "/etc/smack/transition"
-#define SMACK_TRANSITION_DIR "/etc/smack/transidion.d"
+#define SMACK_TRANSITION_DIR "/etc/smack/transition.d"
 
 #define SMACK_XATTR "security.SMACK64"
 

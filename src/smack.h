@@ -81,17 +81,23 @@ int getsmack(char *label, size_t n);
 int setsmack(const char *label);
 
 /**
+ * Check if SMACK is enabled.
+ *
+ */
+int smackenabled(void);
+
+/* The following two functions will only be available
+ * statically. NOT in the dynamic library, to avoid
+ * LD_PRELOAD attacks.
+ */
+
+/**
  * Check if SMACK would allow access.
  *
  * This requires permission to read /smack/load.
  */
 int smackaccess(const char *subject, const char *object, char *access);
 
-/**
- * Check if SMACK is enabled.
- *
- */
-int smackenabled(void);
 
 /**
  * Check if a label-transition is allowed by /etc/transition.d/...
@@ -102,6 +108,8 @@ int smackenabled(void);
  *       still check the mtime of all transition related config
  *       files, and if a file changed, the whole set of rules is
  *       reloaded.
+ * NOTE: Do not rely on this function in a dynamically linked
+ *       executable!
  */
 int smackchecktrans(const char *subject, const char *object);
 

@@ -24,6 +24,7 @@ LDFLAGS = -fPIC
 LIBNAME = wbsmack
 
 LIB_STATIC = lib$(LIBNAME).a
+LIB_ACCESS = lib$(LIBNAME)_access.a
 LIB_SO     = lib$(LIBNAME).so
 LIB_SONAME = lib$(LIBNAME).so.$(V_MAJOR)
 LIB_SHARED = lib$(LIBNAME).so.$(V_MAJOR).$(V_MINOR)
@@ -32,10 +33,12 @@ LIB_HEADER = src/smack.h
 LIB_SOURCES = src/getsmack.c \
               src/getsmackuser.c \
               src/setsmack.c \
+              src/smackenabled.c
+LIB_SOURCES_S = \
               src/smackaccess.c \
-              src/smackenabled.c \
               src/smacktransition.c
 LIB_OBJECTS = $(patsubst %.c,%.o,${LIB_SOURCES})
+LIB_OBJECTS_S = $(patsubst %.c,%.o,${LIB_SOURCES_S})
 
 PAM_SMACK = pam_wbsmack.so
 PAM_SMACKSRC = pam/pam_wbsmack.c
@@ -49,30 +52,34 @@ USMACKEXEC = usmackexec
 USMACKEXECSRC = src/usmackexec.c
 USMACKEXECOBJ = $(patsubst %.c,%.o,${USMACKEXECSRC})
 
-all: $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK) $(UCHSMACK) $(USMACKEXEC)
+all: $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS) $(PAM_SMACK) $(UCHSMACK) $(USMACKEXEC)
 
 $(LIB_SHARED): $(LIB_OBJECTS)
 	$(CC) $(LDFLAGS) -shared -Xlinker -soname -Xlinker $(LIB_SONAME) -o $@ $^
 
-$(LIB_STATIC): $(LIB_OBJECTS)
+$(LIB_STATIC): $(LIB_OBJECTS) $(LIB_OBJECTS_S)
 	$(AR) crs $@ $^
 	$(RANLIB) $@
 
-$(PAM_SMACK): $(PAM_SMACKOBJ) $(LIB_SHARED)
-	$(CC) $(LDFLAGS) -shared -lpam -Xlinker -soname -Xlinker $(PAM_SMACK) -o $@ $(PAM_SMACKOBJ) -L. -lwbsmack
+$(LIB_ACCESS): $(LIB_OBJECTS_S)
+	$(AR) crs $@ $^
+	$(RANLIB) $@
 
-$(UCHSMACK): $(UCHSMACKOBJ) $(LIB_SHARED)
+$(PAM_SMACK): $(PAM_SMACKOBJ) $(LIB_SHARED) $(LIB_ACCESS)
+	$(CC) $(LDFLAGS) -shared -lpam -Xlinker -soname -Xlinker $(PAM_SMACK) -o $@ $(PAM_SMACKOBJ) $(LIB_ACCESS) $(LIB_SHARED)
+
+$(UCHSMACK): $(UCHSMACKOBJ) $(LIB_SHARED) $(LIB_ACCESS) $(LIB_STATIC)
 ifeq ($(STATIC), 1)
-	$(CC) $(LDFLAGS) -lcap -static -o $@ $(UCHSMACKOBJ) libwbsmack.a
+	$(CC) $(LDFLAGS) -lcap -static -o $@ $(UCHSMACKOBJ) $(LIB_STATIC)
 else
-	$(CC) $(LDFLAGS) -lcap -o $@ $(UCHSMACKOBJ) -L. -lwbsmack
+	$(CC) $(LDFLAGS) -lcap -o $@ $(UCHSMACKOBJ) $(LIB_ACCESS) $(LIB_SHARED)
 endif
 
-$(USMACKEXEC): $(USMACKEXECOBJ) $(LIB_SHARED)
+$(USMACKEXEC): $(USMACKEXECOBJ) $(LIB_SHARED) $(LIB_ACCESS) $(LIB_STATIC)
 ifeq ($(STATIC), 1)
-	$(CC) $(LDFLAGS) -lcap -static -o $@ $(USMACKEXECOBJ) libwbsmack.a
+	$(CC) $(LDFLAGS) -lcap -static -o $@ $(USMACKEXECOBJ) $(LIB_STATIC)
 else
-	$(CC) $(LDFLAGS) -lcap -o $@ $(USMACKEXECOBJ) -L. -lwbsmack
+	$(CC) $(LDFLAGS) -lcap -o $@ $(USMACKEXECOBJ) $(LIB_ACCESS) $(LIB_SHARED)
 endif
 
 %.o: %.c
@@ -86,6 +93,7 @@ endif
 install: all
 	install -d -m755               $(DESTDIR)$(PREFIX)/lib
 	install    -m755 $(LIB_STATIC) $(DESTDIR)$(PREFIX)/lib/
+	install    -m755 $(LIB_ACCESS) $(DESTDIR)$(PREFIX)/lib/
 	install    -m755 $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/
 	ln -sf $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/$(LIB_SONAME)
 	ln -sf $(LIB_SONAME) $(DESTDIR)$(PREFIX)/lib/$(LIB_SO)
@@ -102,7 +110,8 @@ install: all
 clean:
 	-rm -f src/*.d pam/*.d
 	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK) $(UCHSMACK)
-	-rm -f $(LIB_OBJECTS) $(UCHSMACKOBJ) $(PAM_SMACKOBJ)
+	-rm -f $(LIB_OBJECTS) $(LIB_OBJECTS_S) $(UCHSMACKOBJ) $(PAM_SMACKOBJ)
+	-rm -f $(LIB_ACCESS)
 
 -include src/*.d
 -include pam/*.d

@@ -19,6 +19,9 @@
 #define SMACK_CIPSO "/smack/cipso"
 #define SMACK_ACCESS "/smack/access"
 
+#define SMACK_TRANSITION_FILE "/etc/smack/transition"
+#define SMACK_TRANSITION_DIR "/etc/smack/transidion.d"
+
 #define SMACK_XATTR "security.SMACK64"
 
 #define SMACK_PROCSELFATTRCURRENT "/proc/self/attr/current"
@@ -27,6 +30,7 @@
 
 /* Maximum size of label, including null terminator. */
 #define SMACK_SIZE 24
+#define SMACK_SIZE_STR "24"
 
 struct smackuser {
 	char *su_name; ///< The listed smack username.
@@ -88,5 +92,17 @@ int smackaccess(const char *subject, const char *object, char *access);
  *
  */
 int smackenabled(void);
+
+/**
+ * Check if a label-transition is allowed by /etc/transition.d/...
+ * This does not include an execute-access check!
+ * You generally want to additionally do smackaccess(sub, obj, "x")
+ * as well.
+ * NOTE: While some caching is performed, each function call will
+ *       still check the mtime of all transition related config
+ *       files, and if a file changed, the whole set of rules is
+ *       reloaded.
+ */
+int smackchecktrans(const char *subject, const char *object);
 
 #endif /* !SMACK_H_ */

@@ -8,7 +8,9 @@ V_MINOR = 2
 V ?= 0
 
 PREFIX := /usr
+ETCDIR := /etc
 PAMPREFIX := /
+
 DESTDIR :=
 
 STATIC := 0
@@ -31,7 +33,8 @@ LIB_SOURCES = src/getsmack.c \
               src/getsmackuser.c \
               src/setsmack.c \
               src/smackaccess.c \
-              src/smackenabled.c
+              src/smackenabled.c \
+              src/smacktransition.c
 LIB_OBJECTS = $(patsubst %.c,%.o,${LIB_SOURCES})
 
 PAM_SMACK = pam_wbsmack.so
@@ -93,6 +96,8 @@ install: all
 	install -d -m755               $(DESTDIR)$(PREFIX)/bin
 	install    -m755 $(UCHSMACK)   $(DESTDIR)$(PREFIX)/bin/
 	install    -m755 $(USMACKEXEC) $(DESTDIR)$(PREFIX)/bin/
+	install -d -m755               $(DESTDIR)$(ETCDIR)/smack/transition.d
+	install    -m644 trans.default $(DESTDIR)$(ETCDIR)/smack/transition.d/default
 
 clean:
 	-rm -f src/*.d pam/*.d

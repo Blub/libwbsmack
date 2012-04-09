@@ -129,7 +129,7 @@ static void readtransfile(const char *filename,
 		           "[a-zA-Z0-0_-] ",
 		           linesub, lineobj) != 2)
 		{
-			fprintf(stderr, "Error in " SMACK_TRANSITION_FILE "\n");
+			fprintf(stderr, "Error in %s\n", _filename);
 			continue;
 		}
 		cacherule(linesub, lineobj);

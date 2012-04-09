@@ -16,7 +16,7 @@
                      (x) == '\f' || \
                      (x) == '\v' )
 
-static struct smackentry newentry(const char *username)
+static struct smackentry* newentry(const char *username)
 {
 	struct smackentry *entry;
 	entry = (struct smackentry*)malloc(sizeof(*entry));
@@ -24,14 +24,15 @@ static struct smackentry newentry(const char *username)
 	entry->su_labels = NULL;
 	entry->su_labelcount = 0;
 	entry->_su_allocated = 0;
+	return entry;
 }
 
 static void addentry(struct smackentry *entry, const char *label)
 {
 	if (entry->su_labelcount == entry->_su_allocated) {
 		entry->_su_allocated *= 2;
-		entry->su_labels = (const char **)
-			realloc(entry->su_labels, sizeof(char*)*entry->sy_allocated);
+		entry->su_labels = (char **)
+			realloc(entry->su_labels, sizeof(char*)*entry->_su_allocated);
 	}
 	entry->su_labels[entry->su_labelcount++] = strdup(label);
 }
@@ -40,10 +41,10 @@ void closesmackentry(struct smackentry *entry)
 {
 	size_t i;
 	for (i = 0; i < entry->su_labelcount; ++i)
-		free(entry->su_labels[i]);
-	free(entry->su_labels);
-	free(entry->su_name);
-	free(entry);
+		free((void*)entry->su_labels[i]);
+	free((void*)entry->su_labels);
+	free((void*)entry->su_name);
+	free((void*)entry);
 }
 
 struct smackentry* opensmackentry(const char *username)

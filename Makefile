@@ -32,6 +32,7 @@ LIB_HEADER = src/smack.h
 
 LIB_SOURCES = src/getsmack.c \
               src/getsmackuser.c \
+              src/opensmackentry.c \
               src/setsmack.c \
               src/smackenabled.c
 LIB_SOURCES_S = \
@@ -72,14 +73,14 @@ $(UCHSMACK): $(UCHSMACKOBJ) $(LIB_SHARED) $(LIB_ACCESS) $(LIB_STATIC)
 ifeq ($(STATIC), 1)
 	$(CC) $(LDFLAGS) -lcap -static -o $@ $(UCHSMACKOBJ) $(LIB_STATIC)
 else
-	$(CC) $(LDFLAGS) -lcap -o $@ $(UCHSMACKOBJ) $(LIB_ACCESS) $(LIB_SHARED)
+	$(CC) $(LDFLAGS) -lcap -o $@ $(UCHSMACKOBJ) $(LIB_STATIC)
 endif
 
 $(USMACKEXEC): $(USMACKEXECOBJ) $(LIB_SHARED) $(LIB_ACCESS) $(LIB_STATIC)
 ifeq ($(STATIC), 1)
 	$(CC) $(LDFLAGS) -lcap -static -o $@ $(USMACKEXECOBJ) $(LIB_STATIC)
 else
-	$(CC) $(LDFLAGS) -lcap -o $@ $(USMACKEXECOBJ) $(LIB_ACCESS) $(LIB_SHARED)
+	$(CC) $(LDFLAGS) -lcap -o $@ $(USMACKEXECOBJ) $(LIB_STATIC)
 endif
 
 %.o: %.c
@@ -105,7 +106,6 @@ install: all
 	install    -m755 $(UCHSMACK)   $(DESTDIR)$(PREFIX)/bin/
 	install    -m755 $(USMACKEXEC) $(DESTDIR)$(PREFIX)/bin/
 	install -d -m755               $(DESTDIR)$(ETCDIR)/smack/transition.d
-	install    -m644 trans.default $(DESTDIR)$(ETCDIR)/smack/transition.d/default
 
 clean:
 	-rm -f src/*.d pam/*.d

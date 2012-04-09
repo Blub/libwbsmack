@@ -38,8 +38,8 @@ struct smackuser {
 };
 
 struct smackentry {
-	const char *su_name;
-	const char **su_labels;
+	char *su_name;
+	char **su_labels;
 	size_t su_labelcount;
 	size_t _su_allocated;
 };

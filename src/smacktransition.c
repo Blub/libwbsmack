@@ -79,11 +79,27 @@ static void readtransfile(const char *filename,
 	FILE *fp;
 	char linesub[SMACK_SIZE+1];
 	char lineobj[SMACK_SIZE+1];
+	char _filename[1024];
 
 	linesub[SMACK_SIZE] = 0;
 	lineobj[SMACK_SIZE] = 0;
 
-	fp = fopen(filename, "r");
+#ifdef SMACK_TRANSITION_FILE
+	if (is_nondirfile)
+		strncpy(_filename, SMACK_TRANSITION_FILE, sizeof(_filename));
+#endif
+#ifdef SMACK_TRANSITION_DIR
+#  ifdef SMACK_TRANSITION_FILE
+	else
+#   endif
+	{
+		strncpy(_filename, SMACK_TRANSITION_DIR, sizeof(_filename));
+		strncat(_filename, "/", sizeof(_filename));
+		strncat(_filename, filename, sizeof(_filename));
+	}
+#endif
+
+	fp = fopen(_filename, "r");
 	if (!fp)
 		return;
 
@@ -92,7 +108,9 @@ static void readtransfile(const char *filename,
 		fc_file.readtime = now;
 #endif
 #ifdef SMACK_TRANSITION_DIR
+#  ifdef SMACK_TRANSITION_FILE
 	else
+#  endif
 		addcache(filename, now);
 #endif
 
@@ -115,7 +133,7 @@ static void readtransfile(const char *filename,
 			continue;
 		}
 		cacherule(linesub, lineobj);
-		if (!allowed &&
+		if (!*allowed &&
 		    !strcmp(subject, linesub) &&
 		    !strcmp(object, lineobj))
 		{
@@ -182,6 +200,7 @@ static int checkcache(time_t now, int *allowed, int *forbidden)
 			if (!fi) {
 				// a new file appeared
 				// reload
+				closedir(dir);
 				return 0;
 			}
 			// check the file:
@@ -189,10 +208,12 @@ static int checkcache(time_t now, int *allowed, int *forbidden)
 			if (!rc) {
 				// stat failed
 				// reload
+				closedir(dir);
 				return 0;
 			}
 			if (stbuf.st_mtime >= fi->readtime) {
 				// changed, reload
+				closedir(dir);
 				return 0;
 			}
 			// remember that we checkd this file

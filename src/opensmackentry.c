@@ -14,6 +14,7 @@
                      (x) == '\t' || \
                      (x) == '\r' || \
                      (x) == '\f' || \
+                     (x) == '\n' || \
                      (x) == '\v' )
 
 static struct smackentry* newentry(const char *username)

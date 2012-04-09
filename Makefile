@@ -6,9 +6,11 @@
 V_MAJOR = 0
 V_MINOR = 2
 V ?= 0
+NODOC ?= 0
 
 PREFIX := /usr
 ETCDIR := /etc
+MANDIR := /usr/share/man
 PAMPREFIX := /
 
 DESTDIR :=
@@ -106,6 +108,22 @@ install: all
 	install    -m755 $(UCHSMACK)   $(DESTDIR)$(PREFIX)/bin/
 	install    -m755 $(USMACKEXEC) $(DESTDIR)$(PREFIX)/bin/
 	install -d -m755               $(DESTDIR)$(ETCDIR)/smack/transition.d
+ifneq ($(NODOC), 1)
+	@echo Installing documentation
+	install -d -m755                      $(DESTDIR)$(MANDIR)/man1
+	install    -m644 doc/uchsmack.1       $(DESTDIR)$(MANDIR)/man1/
+	install    -m644 doc/usmackexec.1     $(DESTDIR)$(MANDIR)/man1/
+	install -d -m755                      $(DESTDIR)$(MANDIR)/man3
+	install    -m644 doc/getsmack.3       $(DESTDIR)$(MANDIR)/man3/
+	install    -m644 doc/setsmack.3       $(DESTDIR)$(MANDIR)/man3/
+	install    -m644 doc/opensmackentry.3 $(DESTDIR)$(MANDIR)/man3/
+	install    -m644 doc/smackaccess.3    $(DESTDIR)$(MANDIR)/man3/
+	ln -sf smackaccess.3 $(DESTDIR)$(MANDIR)/man3/smackchecktrans.3
+	install    -m644 doc/smackenabled.3   $(DESTDIR)$(MANDIR)/man3/
+	ln -sf opensmackentry.3 $(DESTDIR)$(MANDIR)/man3/smackentryget.3
+	ln -sf opensmackentry.3 $(DESTDIR)$(MANDIR)/man3/smackentrycontains.3
+	ln -sf opensmackentry.3 $(DESTDIR)$(MANDIR)/man3/closesmackentry.3
+endif
 
 clean:
 	-rm -f src/*.d pam/*.d

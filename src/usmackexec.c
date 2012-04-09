@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <pwd.h>
 #include <sys/xattr.h>
 
 #include "smack.h"
@@ -65,6 +66,43 @@ static char *findExe(const char *bin)
 	return NULL;
 }
 
+static int cantransition(const char *arg0, const char *mylabel, const char *label)
+{
+	int contains;
+	struct passwd *pwd;
+	struct smackentry *myentry;
+
+	if (!smackaccess(mylabel, label, "x")) {
+		fprintf(stderr, "%s: do not have execute permissions for '%s'\n",
+		        arg0, label);
+		return 0;
+	}
+
+	if (!smackchecktrans(mylabel, label)) {
+		fprintf(stderr, "%s: transition '%s' -> '%s' is not allowed\n",
+		        arg0, mylabel, label);
+		return 0;
+	}
+
+	pwd = getpwuid(getuid());
+	if (!pwd) {
+		perror("getpw");
+		return 0;
+	}
+	myentry = opensmackentry(pwd->pw_name);
+	if (!myentry) {
+		fprintf(stderr, "%s: No smack entry found in smack-users file.\n", arg0);
+		return 0;
+	}
+	contains = smackentrycontains(myentry, label);
+	closesmackentry(myentry);
+	if (!contains) {
+		fprintf(stderr, "%s: '%s' is not a valid label for this user.\n", arg0, label);
+		return 0;
+	}
+	return 1;
+}
+
 int main(int argc, char **argv, char **envp)
 {
 	char *binary;
@@ -116,16 +154,7 @@ int main(int argc, char **argv, char **envp)
 	}
 
 	if (label) {
-		if (!smackaccess(mylabel, label, "x")) {
-			fprintf(stderr, "%s: do not have execute permissions for '%s'\n",
-			        argv[0], label);
-			free(label);
-			exit(1);
-		}
-
-		if (!smackchecktrans(mylabel, label)) {
-			fprintf(stderr, "%s: transition '%s' -> '%s' is not allowed\n",
-			        argv[0], mylabel, label);
+		if (!cantransition(argv[0], mylabel, label)) {
 			free(label);
 			exit(1);
 		}
@@ -163,26 +192,18 @@ int main(int argc, char **argv, char **envp)
 	// We need to be able to execute the program,
 	// and the label we execute the program AS must also be allowed to execute
 	// it.
-	if (!smackaccess(mylabel, filelabel, "x")) {
-		fprintf(stderr, "%s: '%s' cannot execute '%s'\n", argv[0], mylabel, filelabel);
-		if (label) free(label);
-		free(binary);
-		exit(1);
-	}
-	if (label && !smackaccess(label, filelabel, "x")) {
-		fprintf(stderr, "%s: '%s' cannot execute '%s'\n", argv[0], label, filelabel);
-		if (label) free(label);
-		free(binary);
-		exit(1);
-	}
-	// If we have no label specified, we need to be able to transition
-	// to that label.
-	if (!label && !smackchecktrans(mylabel, filelabel)) {
-		fprintf(stderr, "%s: transition '%s' -> '%s' is not allowed\n",
-		        argv[0], mylabel, filelabel);
-		if (label) free(label);
-		free(binary);
-		exit(1);
+	if (!label) {
+		if (!cantransition(argv[0], mylabel, filelabel)) {
+			free(binary);
+			exit(1);
+		}
+	} else {
+		if (!smackaccess(label, filelabel, "x")) {
+			fprintf(stderr, "%s: '%s' cannot execute '%s'\n", argv[0], label, filelabel);
+			free(binary);
+			exit(1);
+		}
+
 	}
 
 	// Set smack label:

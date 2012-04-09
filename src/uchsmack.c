@@ -82,6 +82,7 @@ int main(int argc, char **argv)
 		perror("cap_get_flag");
 		exit(1);
 	}
+	cap_free(caps);
 
 	// If our euid is not root however, we are using a setuid binary,
 	// In any case we can drop any capability except CAP_MAC_ADMIN.
@@ -109,6 +110,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "%s: failed to drop privileges, aborting\n", argv[0]);
 			exit(1);
 		}
+		cap_free(caps);
 
 		// at last, if we can, change securebits:
 		// We have already set the capabilities, do not KEEP_CAPS

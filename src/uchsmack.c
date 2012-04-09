@@ -49,6 +49,12 @@ int main(int argc, char **argv)
 	cap_flag_value_t capvalue = 0;
 	int remove_label = 0;
 
+	if (NULL != getenv("LD_PRELOAD")) {
+		fprintf(stderr, "Refusing to run.\n");
+		exit(1);
+		return 1;
+	}
+
 	// uid_t myuid = geteuid();
 
 	if (argc == 2 && (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h")))

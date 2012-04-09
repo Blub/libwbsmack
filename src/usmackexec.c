@@ -116,6 +116,13 @@ int main(int argc, char **argv, char **envp)
 			free(label);
 			exit(1);
 		}
+
+		if (!smackchecktrans(mylabel, label)) {
+			fprintf(stderr, "%s: transition '%s' -> '%s' is not allowed\n",
+			        argv[0], mylabel, label);
+			free(label);
+			exit(1);
+		}
 	}
 
 	// Find the executable in $PATH:
@@ -158,6 +165,15 @@ int main(int argc, char **argv, char **envp)
 	}
 	if (label && !smackaccess(label, filelabel, "x")) {
 		fprintf(stderr, "%s: '%s' cannot execute '%s'\n", argv[0], label, filelabel);
+		if (label) free(label);
+		free(binary);
+		exit(1);
+	}
+	// If we have no label specified, we need to be able to transition
+	// to that label.
+	if (!label && !smackchecktrans(mylabel, filelabel)) {
+		fprintf(stderr, "%s: transition '%s' -> '%s' is not allowed\n",
+		        argv[0], mylabel, filelabel);
 		if (label) free(label);
 		free(binary);
 		exit(1);

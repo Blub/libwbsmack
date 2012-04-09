@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <sys/prctl.h>
+#include <linux/securebits.h>
 #include <fcntl.h>
 #include <attr/xattr.h>
 
@@ -85,8 +87,16 @@ int main(int argc, char **argv)
 	// In any case we can drop any capability except CAP_MAC_ADMIN.
 	if (getuid() != geteuid())
 	{
+		cap_flag_value_t has_setcap;
 		cap_value_t what = CAP_MAC_ADMIN;
 		capvalue = 1;
+
+		// setuid-root binaries do have that
+		if (cap_get_flag(caps, CAP_SETPCAP, CAP_EFFECTIVE, &has_setcap) != 0) {
+			perror("cap_get_flag");
+			exit(1);
+		}
+
 		caps = cap_init();
 		if (cap_set_flag(caps, CAP_PERMITTED, 1, &what, capvalue) != 0 ||
 		    cap_set_flag(caps, CAP_EFFECTIVE, 1, &what, capvalue) != 0 )
@@ -98,6 +108,20 @@ int main(int argc, char **argv)
 			perror("cap_set_proc");
 			fprintf(stderr, "%s: failed to drop privileges, aborting\n", argv[0]);
 			exit(1);
+		}
+
+		// at last, if we can, change securebits:
+		// We have already set the capabilities, do not KEEP_CAPS
+		if (has_setcap) {
+			if (prctl(PR_SET_SECUREBITS,
+			          SECBIT_NOROOT | SECBIT_NOROOT_LOCKED |
+			          SECBIT_NO_SETUID_FIXUP | SECBIT_NO_SETUID_FIXUP_LOCKED)
+			    != 0)
+			{
+				perror("prctl");
+				fprintf(stderr, "%s: failed to enforce unprivileged mode\n", argv[0]);
+				exit(1);
+			}
 		}
 	}
 

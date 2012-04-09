@@ -109,9 +109,9 @@ install: all
 
 clean:
 	-rm -f src/*.d pam/*.d
-	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(PAM_SMACK) $(UCHSMACK)
-	-rm -f $(LIB_OBJECTS) $(LIB_OBJECTS_S) $(UCHSMACKOBJ) $(PAM_SMACKOBJ)
-	-rm -f $(LIB_ACCESS)
+	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
+	-rm -f $(PAM_SMACK) $(UCHSMACK) $(USMACKEXEC)
+	-rm -f pam/*.o src/*.o
 
 -include src/*.d
 -include pam/*.d

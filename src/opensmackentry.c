@@ -24,11 +24,16 @@ static struct smackentry* newentry(const char *username)
 	entry->su_labels = NULL;
 	entry->su_labelcount = 0;
 	entry->_su_allocated = 0;
+	entry->su_any = 0;
 	return entry;
 }
 
 static void addentry(struct smackentry *entry, const char *label)
 {
+	if (label && label[0] == '*' && label[1] == '\0') {
+		entry->su_any = 1;
+		return;
+	}
 	if (entry->su_labelcount == entry->_su_allocated) {
 		entry->_su_allocated *= 2;
 		entry->su_labels = (char **)

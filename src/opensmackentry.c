@@ -22,9 +22,9 @@ static struct smackentry* newentry(const char *username)
 	struct smackentry *entry;
 	entry = (struct smackentry*)malloc(sizeof(*entry));
 	entry->su_name = strdup(username);
-	entry->su_labels = NULL;
 	entry->su_labelcount = 0;
-	entry->_su_allocated = 0;
+	entry->_su_allocated = 4;
+	entry->su_labels = (char**)malloc(sizeof(char*)*entry->_su_allocated);
 	entry->su_any = 0;
 	return entry;
 }

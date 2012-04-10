@@ -20,7 +20,12 @@ STATIC := 0
 AR ?= ar
 RANLIB ?= ranlib
 
-CFLAGS = -Wall -Werror -g -O2 -fPIC
+CFLAGS = -Wall -Werror -fPIC
+ifeq ($(DEBUG), 1)
+	CFLAGS += -g -O0
+else
+	CFLAGS += -O2
+endif
 LDFLAGS = -fPIC
 
 LIBNAME = wbsmack

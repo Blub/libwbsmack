@@ -246,6 +246,13 @@ int smackchecktrans(const char *subject, const char *object)
 
 	time_t now = time(NULL);
 
+	if (!subject != !object) // one of them is NULL
+		return 0;
+	if (!subject) // both are NULL (due to the above)
+		return 0;
+	if (!strcmp(subject, object)) // both the same
+		return 1;
+
 #ifdef SMACK_TRANSITION_DIR
 	if (SMACK_TRANSITION_DIR[0] != '/') {
 		fprintf(stderr, "SMACK_TRANSITION_DIR is not an absolute path. Denying ALL transitions!\n");

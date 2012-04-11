@@ -1,10 +1,6 @@
-# Use the same version as the library in
-# github/promovicy/smack-util
-# But since we not only fixed bugs, but also
-# implement a function differently, we use a different
-# library name
 V_MAJOR = 0
 V_MINOR = 2
+V_PATCHLEVEL = 1
 V ?= 0
 NODOC ?= 0
 
@@ -35,6 +31,7 @@ LIB_ACCESS = lib$(LIBNAME)_access.a
 LIB_SO     = lib$(LIBNAME).so
 LIB_SONAME = lib$(LIBNAME).so.$(V_MAJOR)
 LIB_SHARED = lib$(LIBNAME).so.$(V_MAJOR).$(V_MINOR)
+LIB_PATCH  = lib$(LIBNAME).so.$(V_MAJOR).$(V_MINOR).$(V_PATCHLEVEL)
 LIB_HEADER = src/smack.h
 
 LIB_SOURCES = src/getsmack.c \
@@ -60,7 +57,18 @@ USMACKEXEC = usmackexec
 USMACKEXECSRC = src/usmackexec.c
 USMACKEXECOBJ = $(patsubst %.c,%.o,${USMACKEXECSRC})
 
-all: $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS) $(PAM_SMACK) $(UCHSMACK) $(USMACKEXEC)
+UNROOT = unroot
+UNROOTSRC = src/unroot.c
+UNROOTOBJ = $(patsubst %.c,%.o,${UNROOTSRC})
+
+BINARIES := $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
+PAMLIBS := $(PAM_SMACK)
+LIBRAREIS := $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
+
+INSTALL := header $(BINARIES) $(PAM_SMACK)
+SUBST_INSTALL = $(patsubst %,install-%,${INSTALL})
+
+all: $(LIBRARIES) $(PAMLIBS) $(BINARIES)
 
 $(LIB_SHARED): $(LIB_OBJECTS)
 	$(CC) $(LDFLAGS) -shared -Xlinker -soname -Xlinker $(LIB_SONAME) -o $@ $^
@@ -90,6 +98,13 @@ else
 	$(CC) $(LDFLAGS) -lcap -o $@ $(USMACKEXECOBJ) $(LIB_STATIC)
 endif
 
+$(UNROOT): $(UNROOTOBJ)
+ifeq ($(STATIC), 1)
+	$(CC) $(LDFLAGS) -lcap -static -o $@ $(UNROOTOBJ)
+else
+	$(CC) $(LDFLAGS) -lcap -o $@ $(UNROOTOBJ)
+endif
+
 %.o: %.c
 ifeq ($(V), 0)
 	@echo CC $*.c
@@ -98,21 +113,30 @@ else
 	$(CC) $(CFLAGS) -c -o $*.o $*.c -MMD -MT $@ -MF $*.d
 endif
 
-install: all
+install: all $(SUBST_INSTALL)
 	install -d -m755               $(DESTDIR)$(PREFIX)/lib
 	install    -m755 $(LIB_STATIC) $(DESTDIR)$(PREFIX)/lib/
 	install    -m755 $(LIB_ACCESS) $(DESTDIR)$(PREFIX)/lib/
-	install    -m755 $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/
+	install    -m755 $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/$(LIB_PATCH)
+	ln -sf $(LIB_PATCH)  $(DESTDIR)$(PREFIX)/lib/$(LIB_SHARED)
 	ln -sf $(LIB_SHARED) $(DESTDIR)$(PREFIX)/lib/$(LIB_SONAME)
 	ln -sf $(LIB_SONAME) $(DESTDIR)$(PREFIX)/lib/$(LIB_SO)
+	install -d -m755               $(DESTDIR)$(ETCDIR)/smack/transition.d
+install-header:
 	install -d -m755               $(DESTDIR)$(PREFIX)/include
 	install    -m644 $(LIB_HEADER) $(DESTDIR)$(PREFIX)/include/
+install-bindir:
+	install -d -m755               $(DESTDIR)$(PREFIX)/bin
+install-$(PAM_SMACK):
 	install -d -m755               $(DESTDIR)$(PAMPREFIX)/lib/security
 	install    -m755 $(PAM_SMACK)  $(DESTDIR)$(PAMPREFIX)/lib/security/
-	install -d -m755               $(DESTDIR)$(PREFIX)/bin
+install-$(UCHSMACK): install-bindir
 	install    -m755 $(UCHSMACK)   $(DESTDIR)$(PREFIX)/bin/
+install-$(USMACKEXEC): install-bindir
 	install    -m755 $(USMACKEXEC) $(DESTDIR)$(PREFIX)/bin/
-	install -d -m755               $(DESTDIR)$(ETCDIR)/smack/transition.d
+install-$(UNROOT): install-bindir
+	install    -m755 $(UNROOT)     $(DESTDIR)$(PREFIX)/bin/
+install-doc:
 ifneq ($(NODOC), 1)
 	@echo Installing documentation
 	install -d -m755                      $(DESTDIR)$(MANDIR)/man1

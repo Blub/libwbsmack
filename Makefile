@@ -157,7 +157,7 @@ endif
 clean:
 	-rm -f src/*.d pam/*.d
 	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
-	-rm -f $(PAM_SMACK) $(UCHSMACK) $(USMACKEXEC)
+	-rm -f $(PAM_SMACK) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
 	-rm -f pam/*.o src/*.o
 
 -include src/*.d

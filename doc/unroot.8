@@ -1,0 +1,31 @@
+.TH UNROOT 8 2012-04-11 "" "wbSmack Manual"
+.SH NAME
+unroot \- become unprivileged as root
+.SH SYNOPSIS
+.BR "unroot " [ options ] " command " [ parameters... ]
+.SH DESCRIPTION
+Execute a command as an unprivileged user as root, without actually
+changin user. This is accomplished by dropping capabilities and setting
+the NOROOT securebits.
+Change the smack-label of files. This is only allowed when the
+user has write-access to the provided label.
+This program should
+.SH OPTIONS
+\&\fBunroot\fR accepts the following command line options:
+.TP
+.B -h, --help
+Show a short usage description.
+.TP
+.B -n, --nocaps
+Use an empty capability set. This drops all capabilities from the
+inheritable set before executing the command, effectively causing the
+command to be executed as an unprivileged user which just happens to
+have userid 0.
+.TP
+.BI "-c, --caps=" capstr
+Specifies a capability set which is to be used. \fIcapstr\fR
+must be a textual capability representation as described in
+.BR cap_from_text (3).
+.SH SEE ALSO
+.BR capability (7),
+.BR cap_from_text (3)

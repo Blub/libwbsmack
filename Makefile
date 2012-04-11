@@ -142,6 +142,8 @@ ifneq ($(NODOC), 1)
 	install -d -m755                      $(DESTDIR)$(MANDIR)/man1
 	install    -m644 doc/uchsmack.1       $(DESTDIR)$(MANDIR)/man1/
 	install    -m644 doc/usmackexec.1     $(DESTDIR)$(MANDIR)/man1/
+	install -d -m755                      $(DESTDIR)$(MANDIR)/man8
+	install    -m644 doc/unroot.8         $(DESTDIR)$(MANDIR)/man8/
 	install -d -m755                      $(DESTDIR)$(MANDIR)/man3
 	install    -m644 doc/getsmack.3       $(DESTDIR)$(MANDIR)/man3/
 	install    -m644 doc/setsmack.3       $(DESTDIR)$(MANDIR)/man3/

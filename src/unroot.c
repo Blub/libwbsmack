@@ -14,7 +14,7 @@ static void usage(const char *arg0, FILE *target, int exitstatus)
 	"options:\n"
 	"   -h, --help           show this message\n"
 	"   -n, --nocaps         use an empty inheritable set\n"
-	"   -i, --icaps=capstr   set inheritable set to these capabilities\n"
+	"   -c, --caps=capstr    use these capabilities\n"
 	"                        see cap_from_text(3) for a description of\n"
 	"                        the textual representation of capabilities\n"
 	);
@@ -24,13 +24,13 @@ static void usage(const char *arg0, FILE *target, int exitstatus)
 static struct option lopts[] = {
 	{ "help",     no_argument,       NULL, 'h' },
 	{ "nocaps",   no_argument,       NULL, 'n' },
-	{ "icaps",    required_argument, NULL, 'i' },
+	{ "caps",     required_argument, NULL, 'c' },
 
 	{ NULL, 0, NULL, 0 }
 };
 
 static int         opt_nocaps = 0;
-static const char *opt_icaps = NULL;
+static const char *opt_caps = NULL;
 
 static void checkargs(int argc, char **argv)
 {
@@ -47,13 +47,13 @@ static void checkargs(int argc, char **argv)
 				opt_nocaps = 1;
 				break;
 			case 'i':
-				if (opt_icaps) {
+				if (opt_caps) {
 					fprintf(stderr, "%s:"
 					        " multiple definition of"
-					        " --icaps, using last.\n",
+					        " --caps, using last.\n",
 					        argv[0]);
 				}
-				opt_icaps = optarg;
+				opt_caps = optarg;
 				break;
 		};
 	}
@@ -76,14 +76,14 @@ int main(int argc, char **argv)
 	if (getuid() != euid)
 		setuid(euid);
 
-	if (opt_icaps)
+	if (opt_caps)
 	{
-		caps = cap_from_text(opt_icaps);
+		caps = cap_from_text(opt_caps);
 		if (NULL == caps) {
 			fprintf(stderr,
 			        "%s: invalid capability string: %s\n"
 			        "(see cap_from_text(3) for info)\n",
-			        argv[0], opt_icaps);
+			        argv[0], opt_caps);
 			exit(1);
 		}
 	}

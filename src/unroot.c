@@ -9,7 +9,7 @@
 
 static void usage(const char *arg0, FILE *target, int exitstatus)
 {
-	fprintf(target, "usage: %s [options ]command [parameters...]\n", arg0);
+	fprintf(target, "usage: %s [options] command [parameters...]\n", arg0);
 	fprintf(target,
 	"options:\n"
 	"   -h, --help           show this message\n"
@@ -41,7 +41,7 @@ static void checkargs(int argc, char **argv)
 	int o;
 	int lind = 0;
 
-	while ( (o = getopt_long(argc, argv, "+hni:", lopts, &lind)) != -1 ) {
+	while ( (o = getopt_long(argc, argv, "+hnc:", lopts, &lind)) != -1 ) {
 		switch (o)
 		{
 			case 'h':

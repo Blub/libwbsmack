@@ -43,12 +43,12 @@
 #define WRITE_OLD (WRITE_NEW - 1)
 
 static struct option opts[] = {
+	{"help",   no_argument, NULL, 'h'},
 	{"clear",  no_argument, NULL, 'c'},
 	{NULL, 0, NULL, 0}
 };
 
-int
-writeload(FILE *infp, int clearflag)
+int writeload(FILE *infp, int clearflag)
 {
 	int loadfd;
 	char line[80];
@@ -142,8 +142,18 @@ writeload(FILE *infp, int clearflag)
 	return 0;
 }
 
-int
-main(int argc, char *argv[])
+static void usage(const char *arg0, FILE *target, int exitstatus)
+{
+	fprintf(target, "usage: %s [options] files...\n", arg0);
+	fprintf(target,
+	"options:\n"
+	"  -h, --help            show this help message\n"
+	"  -c, --clear           replace all accesses with -\n"
+	);
+	exit(exitstatus);
+}
+
+int main(int argc, char *argv[])
 {
 	int c;
 	int clearflag = 0;
@@ -155,8 +165,11 @@ main(int argc, char *argv[])
 		case 'c':
 			clearflag = 1;
 			break;
+		case 'h':
+			usage(argv[0], stdout, 0);
+			break;
 		default:
-			fprintf(stderr, "Usage: %s [-c|--clear]\n", argv[0]);
+			usage(argv[0], stderr, 1);
 			exit(1);
 		}
 		i++;

@@ -180,7 +180,7 @@ install-doc:
 ifneq ($(NODOC), 1)
 	@echo Installing documentation
 	install -d -m755                      $(DESTDIR)$(MANDIR)/man1
-	install    -m644 doc/chsmack.1       $(DESTDIR)$(MANDIR)/man1/
+	install    -m644 doc/chsmack.8        $(DESTDIR)$(MANDIR)/man1/
 	install    -m644 doc/uchsmack.1       $(DESTDIR)$(MANDIR)/man1/
 	install    -m644 doc/usmackexec.1     $(DESTDIR)$(MANDIR)/man1/
 	install -d -m755                      $(DESTDIR)$(MANDIR)/man8

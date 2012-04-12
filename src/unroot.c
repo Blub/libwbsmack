@@ -17,6 +17,7 @@ static void usage(const char *arg0, FILE *target, int exitstatus)
 	"   -c, --caps=capstr    use these capabilities\n"
 	"                        see cap_from_text(3) for a description of\n"
 	"                        the textual representation of capabilities\n"
+	"   --nolock             do not lock capability set (DANGEROUS)\n"
 	);
 	exit(exitstatus);
 }
@@ -25,6 +26,7 @@ static struct option lopts[] = {
 	{ "help",     no_argument,       NULL, 'h' },
 	{ "nocaps",   no_argument,       NULL, 'n' },
 	{ "caps",     required_argument, NULL, 'c' },
+	{ "nolock",   no_argument,       NULL, 0x100 + 'N' },
 
 	{ NULL, 0, NULL, 0 }
 };
@@ -32,6 +34,7 @@ static struct option lopts[] = {
 static int         opt_cmdstart = 1;
 static int         opt_nocaps = 0;
 static const char *opt_caps = NULL;
+static int         opt_nolock = 0;
 
 static void checkargs(int argc, char **argv)
 {
@@ -56,6 +59,12 @@ static void checkargs(int argc, char **argv)
 				}
 				opt_caps = optarg;
 				break;
+			case (0x100+'N'):
+				opt_nolock = 1;
+				break;
+			default:
+				usage(argv[0], stderr, 1);
+				break;
 		};
 	}
 
@@ -69,6 +78,7 @@ static void checkargs(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	int optflags;
 	pid_t euid = geteuid();
 	int i;
 	cap_t caps;
@@ -87,6 +97,15 @@ int main(int argc, char **argv)
 			        "%s: invalid capability string: %s\n"
 			        "(see cap_from_text(3) for info)\n",
 			        argv[0], opt_caps);
+			exit(1);
+		}
+		// we need this for prctl
+		v[0] = CAP_SETPCAP;
+		if (cap_set_flag(caps, CAP_EFFECTIVE, 1, v, CAP_SET) != 0 ||
+		    cap_set_flag(caps, CAP_PERMITTED, 1, v, CAP_SET) != 0)
+		{
+			fprintf(stderr, "%s: failed to keep necessary capabilities to lock"
+			        "out root privileges\n", argv[0]);
 			exit(1);
 		}
 	}
@@ -112,10 +131,13 @@ int main(int argc, char **argv)
 	}
 	cap_free(caps);
 
+	optflags = 0;
+	if (!opt_nolock)
+		optflags |= SECBIT_KEEP_CAPS_LOCKED;
 	i = prctl(PR_SET_SECUREBITS,
 	          SECBIT_NOROOT | SECBIT_NOROOT_LOCKED |
 	          SECBIT_NO_SETUID_FIXUP | SECBIT_NO_SETUID_FIXUP_LOCKED |
-	          SECBIT_KEEP_CAPS);
+	          SECBIT_KEEP_CAPS | optflags);
 	if (i != 0) {
 		perror("prctl securebits");
 		exit(i);

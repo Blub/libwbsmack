@@ -15,6 +15,7 @@
 
 static struct option lopts[] = {
 	{ "help",      no_argument,       NULL, 'h' },
+	{ "link",      no_argument,       NULL, 'l' },
 	{ "access",    required_argument, NULL, 'a' },
 	{ "exec",      required_argument, NULL, 'x' },
 	{ "mmap",      required_argument, NULL, 'm' },
@@ -28,6 +29,7 @@ static void usage(const char *arg0, FILE *target, int exitstatus)
 	fprintf(target,
 	"options:\n"
 	"  -h, --help            show this help message\n"
+	"  -l, --link            do not follow symlinks.\n"
 	"label options:\n"
 	"  -a, --access=label    access label\n"
 	"  -e, --exec=label      execute-as label\n"
@@ -43,16 +45,20 @@ static const char *opt_exec = NULL;
 static const char *opt_mmap = NULL;
 static const char *opt_transmute = NULL;
 static int opt_argstart = 1;
+static int opt_link = 0;
 
 static void checkargs(int argc, char **argv)
 {
 	int o, lind = 0;
-	while ((o = getopt_long(argc, argv, "+ha:e:m:t:", lopts, &lind)) != -1)
+	while ((o = getopt_long(argc, argv, "+hla:e:m:t:", lopts, &lind)) != -1)
 	{
 		switch (o)
 		{
 			case 'h':
 				usage(argv[0], stdout, 0);
+				break;
+			case 'l':
+				opt_link = 1;
 				break;
 			case 'a':
 				opt_access = optarg;
@@ -83,6 +89,10 @@ int main(int argc, char **argv)
 	//int addfile = 0;
 	const char *trans = NULL;
 	char buffer[SMACK_SIZE];
+
+	ssize_t (*getxa)(const char*, const char*, void*, size_t) = &getxattr;
+	int     (*setxa)(const char*, const char*, const void*, size_t, int) = &setxattr;
+
 	checkargs(argc, argv);
 
 	if (opt_access && strlen(opt_access) >= SMACK_SIZE) {
@@ -129,30 +139,35 @@ int main(int argc, char **argv)
 
 	justprint = !opt_access && !opt_exec && !opt_mmap && !opt_transmute;
 	//addfile = (opt_argstart+1 != argc);
+
+	if (opt_link) {
+		getxa = &lgetxattr;
+		setxa = &lsetxattr;
+	}
 	for (i = opt_argstart; i < argc; ++i)
 	{
 		if (justprint) {
 			//if (addfile)
 			printf("%s", argv[i]);
-			rc = lgetxattr(argv[i], XATTR_NAME_SMACK, buffer,
+			rc = getxa(argv[i], XATTR_NAME_SMACK, buffer,
 			               sizeof(buffer));
 			if (rc > 0) {
 				buffer[rc] = 0;
 				printf(" access=\"%s\"", buffer);
 			}
-			rc = lgetxattr(argv[i], XATTR_NAME_SMACKEXEC, buffer,
+			rc = getxa(argv[i], XATTR_NAME_SMACKEXEC, buffer,
 			               sizeof(buffer));
 			if (rc > 0) {
 				buffer[rc] = 0;
 				printf(" execute=\"%s\"", buffer);
 			}
-			rc = lgetxattr(argv[i], XATTR_NAME_SMACKMMAP, buffer,
+			rc = getxa(argv[i], XATTR_NAME_SMACKMMAP, buffer,
 			               sizeof(buffer));
 			if (rc > 0) {
 				buffer[rc] = 0;
 				printf(" mmap=\"%s\"", buffer);
 			}
-			rc = lgetxattr(argv[i], XATTR_NAME_SMACKTRANSMUTE, buffer,
+			rc = getxa(argv[i], XATTR_NAME_SMACKTRANSMUTE, buffer,
 			               sizeof(buffer));
 			if (rc > 0) {
 				buffer[rc] = 0;
@@ -162,25 +177,25 @@ int main(int argc, char **argv)
 			continue;
 		}
 		if (opt_access) {
-			rc = lsetxattr(argv[i], XATTR_NAME_SMACK,
+			rc = setxa(argv[i], XATTR_NAME_SMACK,
 			               opt_access, strlen(opt_access) + 1, 0);
 			if (rc < 0)
 				perror(argv[i]);
 		}
 		if (opt_exec) {
-			rc = lsetxattr(argv[i], XATTR_NAME_SMACKEXEC,
+			rc = setxa(argv[i], XATTR_NAME_SMACKEXEC,
 			               opt_exec, strlen(opt_exec) + 1, 0);
 			if (rc < 0)
 				perror(argv[i]);
 		}
 		if (opt_mmap) {
-			rc = lsetxattr(argv[i], XATTR_NAME_SMACKMMAP,
+			rc = setxa(argv[i], XATTR_NAME_SMACKMMAP,
 			               opt_mmap, strlen(opt_mmap) + 1, 0);
 			if (rc < 0)
 				perror(argv[i]);
 		}
 		if (trans) {
-			rc = lsetxattr(argv[i], XATTR_NAME_SMACKTRANSMUTE,
+			rc = setxa(argv[i], XATTR_NAME_SMACKTRANSMUTE,
 			               trans, strlen(trans) + 1, 0);
 			if (rc < 0)
 				perror(argv[i]);

@@ -1,0 +1,46 @@
+.\" Process with groff -man -Tascii file.3
+.TH CHSMACK 8 2012-04-09 "" "wbSmack Manual"
+.SH NAME
+chsmack \- change smack labels of files
+.SH SYNOPSIS
+.BR "chsmack " [ options ] " files..."
+.SH DESCRIPTION
+Change or view several types of smack labels of files. Changing labels
+requires CAP_MAC_ADMIN capabilities. Contrary to the user-tool uchsmack,
+this does not check your own smack labels and permissions, and as such
+is meant to be an administration tool.
+.PP
+Each option provided is applied seperately. The program does not stop on
+failure of a single file. If no options are provided, the known smack
+labels are printed to stdout.
+.SH OPTIONS
+.TP
+.B -h, --help
+Show a short usage description.
+.TP
+.BI "-a, --access=" label
+Change the files' access label to \fIlabel\fR. This label is used for
+standard permission checking.
+.TP
+.BI "-e, --exec=" label
+Change the execution label to \fIlabel\fR. A program with such a label
+will always be executed using that label.
+.BR usmackexec (1) " cannot"
+be used override this behaviour. The caller of the program will not need
+transition permissions, nor will \fI/etc/smack/usr\fR be taken into
+account. The handling of this label is done purely on the kernel side.
+.TP
+.BI "-m, --mmap=" label
+Change the mmap label. This label influences the
+.BR mmap (2)
+access rights of a file.
+.TP
+.BR "-t, --transmute=" TRUE | FALSE
+Change the transmute flag of a directory. In a directory with this flag
+set to true, created files recieve the directory's label, rather than
+the label of the creating process.
+.SH SEE ALSO
+.BR uchsmack (1),
+.BR usmackexec (1),
+.BR mmap (2),
+.BR capabilities (7)

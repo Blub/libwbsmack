@@ -53,6 +53,10 @@ UCHSMACK = uchsmack
 UCHSMACKSRC = src/uchsmack.c
 UCHSMACKOBJ = $(patsubst %.c,%.o,${UCHSMACKSRC})
 
+CHSMACK = chsmack
+CHSMACKSRC = src/chsmack.c
+CHSMACKOBJ = $(patsubst %.c,%.o,${CHSMACKSRC})
+
 USMACKEXEC = usmackexec
 USMACKEXECSRC = src/usmackexec.c
 USMACKEXECOBJ = $(patsubst %.c,%.o,${USMACKEXECSRC})
@@ -61,7 +65,7 @@ UNROOT = unroot
 UNROOTSRC = src/unroot.c
 UNROOTOBJ = $(patsubst %.c,%.o,${UNROOTSRC})
 
-BINARIES := $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
+BINARIES := $(CHSMACK) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
 PAMLIBS := $(PAM_SMACK)
 LIBRAREIS := $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
 
@@ -83,6 +87,13 @@ $(LIB_ACCESS): $(LIB_OBJECTS_S)
 
 $(PAM_SMACK): $(PAM_SMACKOBJ) $(LIB_SHARED) $(LIB_ACCESS)
 	$(CC) $(LDFLAGS) -shared -lpam -Xlinker -soname -Xlinker $(PAM_SMACK) -o $@ $(PAM_SMACKOBJ) $(LIB_ACCESS) $(LIB_SHARED)
+
+$(CHSMACK): $(CHSMACKOBJ)
+ifeq ($(STATIC), 1)
+	$(CC) $(LDFLAGS) -lcap -static -o $@ $(CHSMACKOBJ)
+else
+	$(CC) $(LDFLAGS) -lcap -o $@ $(CHSMACKOBJ)
+endif
 
 $(UCHSMACK): $(UCHSMACKOBJ) $(LIB_SHARED) $(LIB_ACCESS) $(LIB_STATIC)
 ifeq ($(STATIC), 1)
@@ -130,6 +141,8 @@ install-bindir:
 install-$(PAM_SMACK): $(PAM_SMACK)
 	install -d -m755               $(DESTDIR)$(PAMPREFIX)/lib/security
 	install    -m755 $(PAM_SMACK)  $(DESTDIR)$(PAMPREFIX)/lib/security/
+install-$(CHSMACK): $(CHSMACK) install-bindir
+	install    -m755 $(CHSMACK)   $(DESTDIR)$(PREFIX)/bin/
 install-$(UCHSMACK): $(UCHSMACK) install-bindir
 	install    -m755 $(UCHSMACK)   $(DESTDIR)$(PREFIX)/bin/
 install-$(USMACKEXEC): $(USMACKEXEC) install-bindir
@@ -140,6 +153,7 @@ install-doc:
 ifneq ($(NODOC), 1)
 	@echo Installing documentation
 	install -d -m755                      $(DESTDIR)$(MANDIR)/man1
+	install    -m644 doc/chsmack.1       $(DESTDIR)$(MANDIR)/man1/
 	install    -m644 doc/uchsmack.1       $(DESTDIR)$(MANDIR)/man1/
 	install    -m644 doc/usmackexec.1     $(DESTDIR)$(MANDIR)/man1/
 	install -d -m755                      $(DESTDIR)$(MANDIR)/man8
@@ -159,7 +173,7 @@ endif
 clean:
 	-rm -f src/*.d pam/*.d
 	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
-	-rm -f $(PAM_SMACK) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
+	-rm -f $(PAM_SMACK) $(CHSMACK) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
 	-rm -f pam/*.o src/*.o
 
 -include src/*.d

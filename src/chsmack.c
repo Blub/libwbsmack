@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 {
 	int i, rc;
 	int justprint = 0;
-	int addfile = 0;
+	//int addfile = 0;
 	const char *trans = NULL;
 	char buffer[SMACK_SIZE];
 	checkargs(argc, argv);
@@ -128,11 +128,12 @@ int main(int argc, char **argv)
 	}
 
 	justprint = !opt_access && !opt_exec && !opt_mmap && !opt_transmute;
-	addfile = (opt_argstart+1 != argc);
+	//addfile = (opt_argstart+1 != argc);
 	for (i = opt_argstart; i < argc; ++i)
 	{
 		if (justprint) {
-			if (addfile) printf("%s", argv[i]);
+			//if (addfile)
+			printf("%s", argv[i]);
 			rc = lgetxattr(argv[i], XATTR_NAME_SMACK, buffer,
 			               sizeof(buffer));
 			if (rc > 0) {

@@ -136,6 +136,11 @@ int main(int argc, char **argv)
 	}
 
 	labellen = strlen(label);
+	if (labellen >= SMACK_SIZE) {
+		fprintf(stderr, "%s: label '%s' exceeds length of %d\n",
+		        argv[0], label, SMACK_SIZE-1);
+		exit(1);
+	}
 	for (i = 2; i < argc; ++i) {
 		int fd = open(argv[i], O_RDONLY); //RDWR, but directories don't want that
 		if (fd < 0) {

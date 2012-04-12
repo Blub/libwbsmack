@@ -149,6 +149,11 @@ int main(int argc, char **argv, char **envp)
 	}
 
 	if (label) {
+		if (strlen(label) >= SMACK_SIZE) {
+			fprintf(stderr, "%s: label '%s' exceeds length of %d\n",
+			        argv[0], label, SMACK_SIZE-1);
+			exit(1);
+		}
 		if (!cantransition(argv[0], mylabel, label)) {
 			free(label);
 			exit(1);

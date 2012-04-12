@@ -29,6 +29,7 @@ static struct option lopts[] = {
 	{ NULL, 0, NULL, 0 }
 };
 
+static int         opt_cmdstart = 1;
 static int         opt_nocaps = 0;
 static const char *opt_caps = NULL;
 
@@ -58,10 +59,12 @@ static void checkargs(int argc, char **argv)
 		};
 	}
 
-	if (argc - optind < 2) {
+	if (argc - optind < 1) {
 		fprintf(stderr, "%s: command missing\n", argv[0]);
 		usage(argv[0], stderr, 1);
 	}
+
+	opt_cmdstart = optind;
 }
 
 int main(int argc, char **argv)
@@ -93,7 +96,9 @@ int main(int argc, char **argv)
 		for (i = 0; i <= CAP_LAST_CAP; ++i)
 			v[i] = i;
 
-		if (cap_set_flag(caps, CAP_INHERITABLE, CAP_LAST_CAP+1, v, CAP_SET) != 0) {
+		if (cap_set_flag(caps, CAP_INHERITABLE, CAP_LAST_CAP, v, CAP_SET) != 0) {
+			perror("cap_set_flag");
+			fprintf(stderr, "%s: failed to set inheritable caps\n", argv[0]);
 			exit(-1);
 		}
 	}
@@ -109,13 +114,14 @@ int main(int argc, char **argv)
 
 	i = prctl(PR_SET_SECUREBITS,
 	          SECBIT_NOROOT | SECBIT_NOROOT_LOCKED |
-	          SECBIT_NO_SETUID_FIXUP | SECBIT_NO_SETUID_FIXUP_LOCKED);
+	          SECBIT_NO_SETUID_FIXUP | SECBIT_NO_SETUID_FIXUP_LOCKED |
+	          SECBIT_KEEP_CAPS);
 	if (i != 0) {
 		perror("prctl securebits");
 		exit(i);
 	}
 
-	i = execvp(argv[1], &argv[1]);
+	i = execvp(argv[opt_cmdstart], &argv[opt_cmdstart]);
 	perror("exec");
 	exit(i);
 	return i;

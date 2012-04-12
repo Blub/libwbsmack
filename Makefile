@@ -53,6 +53,14 @@ UCHSMACK = uchsmack
 UCHSMACKSRC = src/uchsmack.c
 UCHSMACKOBJ = $(patsubst %.c,%.o,${UCHSMACKSRC})
 
+SMACKCIPSO = smackcipso
+SMACKCIPSOSRC = old-util/smackcipso.c
+SMACKCIPSOOBJ = $(patsubst %.c,%.o,${SMACKCIPSOSRC})
+
+SMACKLOAD = smackload
+SMACKLOADSRC = old-util/smackcipso.c
+SMACKLOADOBJ = $(patsubst %.c,%.o,${SMACKLOADSRC})
+
 CHSMACK = chsmack
 CHSMACKSRC = src/chsmack.c
 CHSMACKOBJ = $(patsubst %.c,%.o,${CHSMACKSRC})
@@ -65,7 +73,8 @@ UNROOT = unroot
 UNROOTSRC = src/unroot.c
 UNROOTOBJ = $(patsubst %.c,%.o,${UNROOTSRC})
 
-BINARIES := $(CHSMACK) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
+BINARIES := $(SMACKCIPSO) $(SMACKLOAD) \
+            $(CHSMACK) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
 PAMLIBS := $(PAM_SMACK)
 LIBRAREIS := $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
 
@@ -88,11 +97,25 @@ $(LIB_ACCESS): $(LIB_OBJECTS_S)
 $(PAM_SMACK): $(PAM_SMACKOBJ) $(LIB_SHARED) $(LIB_ACCESS)
 	$(CC) $(LDFLAGS) -shared -lpam -Xlinker -soname -Xlinker $(PAM_SMACK) -o $@ $(PAM_SMACKOBJ) $(LIB_ACCESS) $(LIB_SHARED)
 
+$(SMACKCIPSO): $(SMACKCIPSOOBJ)
+ifeq ($(STATIC), 1)
+	$(CC) $(LDFLAGS) -static -o $@ $(SMACKCIPSOOBJ)
+else
+	$(CC) $(LDFLAGS) -o $@ $(SMACKCIPSOOBJ)
+endif
+
+$(SMACKLOAD): $(SMACKLOADOBJ)
+ifeq ($(STATIC), 1)
+	$(CC) $(LDFLAGS) -static -o $@ $(SMACKLOADOBJ)
+else
+	$(CC) $(LDFLAGS) -o $@ $(SMACKLOADOBJ)
+endif
+
 $(CHSMACK): $(CHSMACKOBJ)
 ifeq ($(STATIC), 1)
-	$(CC) $(LDFLAGS) -lcap -static -o $@ $(CHSMACKOBJ)
+	$(CC) $(LDFLAGS) -static -o $@ $(CHSMACKOBJ)
 else
-	$(CC) $(LDFLAGS) -lcap -o $@ $(CHSMACKOBJ)
+	$(CC) $(LDFLAGS) -o $@ $(CHSMACKOBJ)
 endif
 
 $(UCHSMACK): $(UCHSMACKOBJ) $(LIB_SHARED) $(LIB_ACCESS) $(LIB_STATIC)
@@ -141,6 +164,10 @@ install-bindir:
 install-$(PAM_SMACK): $(PAM_SMACK)
 	install -d -m755               $(DESTDIR)$(PAMPREFIX)/lib/security
 	install    -m755 $(PAM_SMACK)  $(DESTDIR)$(PAMPREFIX)/lib/security/
+install-$(SMACKLOAD): $(SMACKLOAD) install-bindir
+	install    -m755 $(SMACKLOAD)   $(DESTDIR)$(PREFIX)/bin/
+install-$(SMACKCIPSO): $(SMACKCIPSO) install-bindir
+	install    -m755 $(SMACKCIPSO)   $(DESTDIR)$(PREFIX)/bin/
 install-$(CHSMACK): $(CHSMACK) install-bindir
 	install    -m755 $(CHSMACK)   $(DESTDIR)$(PREFIX)/bin/
 install-$(UCHSMACK): $(UCHSMACK) install-bindir
@@ -173,7 +200,9 @@ endif
 clean:
 	-rm -f src/*.d pam/*.d
 	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
-	-rm -f $(PAM_SMACK) $(CHSMACK) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
+	-rm -f $(PAM_SMACK)
+	-rm -f $(SMACKLOAD) $(SMACKCIPSO) $(CHSMACK)
+	-rm -f $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
 	-rm -f pam/*.o src/*.o
 
 -include src/*.d

@@ -47,7 +47,7 @@ static void checkargs(int argc, char **argv)
 			case 'n':
 				opt_nocaps = 1;
 				break;
-			case 'i':
+			case 'c':
 				if (opt_caps) {
 					fprintf(stderr, "%s:"
 					        " multiple definition of"

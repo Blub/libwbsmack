@@ -7,6 +7,7 @@ NODOC ?= 0
 PREFIX := /usr
 ETCDIR := /etc
 MANDIR := /usr/share/man
+SBINDIR := /sbin
 PAMPREFIX := /
 
 DESTDIR :=
@@ -161,13 +162,15 @@ install-header:
 	install    -m644 $(LIB_HEADER) $(DESTDIR)$(PREFIX)/include/
 install-bindir:
 	install -d -m755               $(DESTDIR)$(PREFIX)/bin
+install-sbindir:
+	install -d -m755               $(DESTDIR)$(SBINDIR)
 install-$(PAM_SMACK): $(PAM_SMACK)
 	install -d -m755               $(DESTDIR)$(PAMPREFIX)/lib/security
 	install    -m755 $(PAM_SMACK)  $(DESTDIR)$(PAMPREFIX)/lib/security/
-install-$(SMACKLOAD): $(SMACKLOAD) install-bindir
-	install    -m755 $(SMACKLOAD)   $(DESTDIR)$(PREFIX)/bin/
-install-$(SMACKCIPSO): $(SMACKCIPSO) install-bindir
-	install    -m755 $(SMACKCIPSO)   $(DESTDIR)$(PREFIX)/bin/
+install-$(SMACKLOAD): $(SMACKLOAD) install-sbindir
+	install    -m755 $(SMACKLOAD)  $(DESTDIR)$(SBINDIR)/
+install-$(SMACKCIPSO): $(SMACKCIPSO) install-sbindir
+	install    -m755 $(SMACKCIPSO) $(DESTDIR)$(SBINDIR)/
 install-$(CHSMACK): $(CHSMACK) install-bindir
 	install    -m755 $(CHSMACK)   $(DESTDIR)$(PREFIX)/bin/
 install-$(UCHSMACK): $(UCHSMACK) install-bindir

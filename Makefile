@@ -127,14 +127,14 @@ install-header:
 	install    -m644 $(LIB_HEADER) $(DESTDIR)$(PREFIX)/include/
 install-bindir:
 	install -d -m755               $(DESTDIR)$(PREFIX)/bin
-install-$(PAM_SMACK):
+install-$(PAM_SMACK): $(PAM_SMACK)
 	install -d -m755               $(DESTDIR)$(PAMPREFIX)/lib/security
 	install    -m755 $(PAM_SMACK)  $(DESTDIR)$(PAMPREFIX)/lib/security/
-install-$(UCHSMACK): install-bindir
+install-$(UCHSMACK): $(UCHSMACK) install-bindir
 	install    -m755 $(UCHSMACK)   $(DESTDIR)$(PREFIX)/bin/
-install-$(USMACKEXEC): install-bindir
+install-$(USMACKEXEC): $(USMACKEXEC) install-bindir
 	install    -m755 $(USMACKEXEC) $(DESTDIR)$(PREFIX)/bin/
-install-$(UNROOT): install-bindir
+install-$(UNROOT): $(UNROOT) install-bindir
 	install    -m755 $(UNROOT)     $(DESTDIR)$(PREFIX)/bin/
 install-doc:
 ifneq ($(NODOC), 1)

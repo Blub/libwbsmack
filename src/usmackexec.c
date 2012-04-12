@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <sys/xattr.h>
+#include <linux/xattr.h>
 
 #include "smack.h"
 
@@ -175,8 +176,7 @@ int main(int argc, char **argv, char **envp)
 	*/
 
 	// Get the program's label
-	//if (fgetxattr(binfd, SMACK_XATTR, filelabel, sizeof(filelabel)) == -1) {
-	if (getxattr(binary, SMACK_XATTR, filelabel, sizeof(filelabel)) == -1) {
+	if (getxattr(binary, XATTR_NAME_SMACK, filelabel, sizeof(filelabel)) == -1) {
 		perror("getxattr");
 		if (label) free(label);
 		free(binary);

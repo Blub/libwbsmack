@@ -22,8 +22,6 @@
 #define SMACK_TRANSITION_FILE "/etc/smack/transition"
 #define SMACK_TRANSITION_DIR "/etc/smack/transition.d"
 
-#define SMACK_XATTR "security.SMACK64"
-
 #define SMACK_PROCSELFATTRCURRENT "/proc/self/attr/current"
 
 #define SMACK_USERS "/etc/smack/usr"

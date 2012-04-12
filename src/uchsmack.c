@@ -10,10 +10,11 @@
 #include <linux/securebits.h>
 #include <fcntl.h>
 #include <attr/xattr.h>
+#include <linux/xattr.h>
 
 #include "smack.h"
 
-#define SMACKLABEL SMACK_XATTR
+#define SMACKLABEL XATTR_NAME_SMACK
 
 /* Change the smack label for a file - provided we have access to it.
  */

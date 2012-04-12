@@ -58,7 +58,7 @@ SMACKCIPSOSRC = old-util/smackcipso.c
 SMACKCIPSOOBJ = $(patsubst %.c,%.o,${SMACKCIPSOSRC})
 
 SMACKLOAD = smackload
-SMACKLOADSRC = old-util/smackcipso.c
+SMACKLOADSRC = old-util/smackload.c
 SMACKLOADOBJ = $(patsubst %.c,%.o,${SMACKLOADSRC})
 
 CHSMACK = chsmack

@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 	{
 		if (justprint) {
 			//if (addfile)
-			printf("%s", argv[i]);
+			printf("%s:", argv[i]);
 			rc = getxa(argv[i], XATTR_NAME_SMACK, buffer,
 			               sizeof(buffer));
 			if (rc > 0) {

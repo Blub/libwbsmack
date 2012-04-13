@@ -201,12 +201,12 @@ ifneq ($(NODOC), 1)
 endif
 
 clean:
-	-rm -f src/*.d pam/*.d
+	-rm -f src/*.d pam/*.d old-util/*.d
 	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
 	-rm -f $(PAM_SMACK)
 	-rm -f $(SMACKLOAD) $(SMACKCIPSO) $(CHSMACK)
 	-rm -f $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
-	-rm -f pam/*.o src/*.o
+	-rm -f pam/*.o src/*.o old-util/*.o
 
 -include src/*.d
 -include pam/*.d

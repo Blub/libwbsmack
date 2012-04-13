@@ -13,6 +13,12 @@ is meant to be an administration tool.
 Each option provided is applied seperately. The program does not stop on
 failure of a single file. If no options are provided, the known smack
 labels are printed to stdout.
+.PP
+The \fB--store\fR and \fB--restore\fR options can be used to use an
+easily parseable format, for one file at a time.
+With \fB--restore\fR, the labels are read form
+stdin, and no labels fro the commandline can be used, otherwise an error
+will be printed and the file stays unchanged.
 .SH OPTIONS
 .TP
 .B -h, --help
@@ -20,6 +26,15 @@ Show a short usage description.
 .TP
 .B -l, --link
 Change attributes of symlinks rather than following them.
+.TP
+.B -S, --store
+Use an easily parsable output format, excluding the filename.
+Can only be used on a single file at a time.
+.TP
+.B -R, --restore
+Read access labels from standard-input. The form printed using
+.B -S/--store
+is expected as input format.
 .TP
 .BI "-a, --access=" label
 Change the files' access label to \fIlabel\fR. This label is used for

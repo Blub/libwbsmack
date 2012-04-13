@@ -17,10 +17,14 @@
 static struct option lopts[] = {
 	{ "help",      no_argument,       NULL, 'h' },
 	{ "link",      no_argument,       NULL, 'l' },
+	{ "store",     no_argument,       NULL, 'S' },
+	{ "restore",   no_argument,       NULL, 'R' },
+
 	{ "access",    required_argument, NULL, 'a' },
 	{ "exec",      required_argument, NULL, 'x' },
 	{ "mmap",      required_argument, NULL, 'm' },
 	{ "transmute", required_argument, NULL, 't' },
+
 	{ NULL, 0, NULL, 0}
 };
 
@@ -30,7 +34,10 @@ static void usage(const char *arg0, FILE *target, int exitstatus)
 	fprintf(target,
 	"options:\n"
 	"  -h, --help            show this help message\n"
-	"  -l, --link            do not follow symlinks.\n"
+	"  -l, --link            do not follow symlinks\n"
+	"  -S, --store           print in a format usable as input\n"
+	"  -R, --restore         read labels from stdin\n"
+	"The -S and -R options only allow 1 file per run\n"
 	"label options:\n"
 	"  -a, --access=label    access label\n"
 	"  -e, --exec=label      execute-as label\n"
@@ -45,13 +52,20 @@ static const char *opt_access = NULL;
 static const char *opt_exec = NULL;
 static const char *opt_mmap = NULL;
 static const char *opt_transmute = NULL;
+static int opt_store = 0;
+static int opt_restore = 0;
 static int opt_argstart = 1;
 static int opt_link = 0;
+
+static int _opt_singlefile = 0;
+static int _opt_nolabels = 0;
+static int _opt_gotlabel = 0;
+static int _opt_readlabels = 0;
 
 static void checkargs(int argc, char **argv)
 {
 	int o, lind = 0;
-	while ((o = getopt_long(argc, argv, "+hla:e:m:t:", lopts, &lind)) != -1)
+	while ((o = getopt_long(argc, argv, "+hlSRa:e:m:t:", lopts, &lind)) != -1)
 	{
 		switch (o)
 		{
@@ -61,17 +75,32 @@ static void checkargs(int argc, char **argv)
 			case 'l':
 				opt_link = 1;
 				break;
+			case 'S':
+				opt_store = 1;
+				_opt_singlefile = 1;
+				_opt_nolabels = 1;
+				break;
+			case 'R':
+				opt_restore = 1;
+				_opt_singlefile = 1;
+				_opt_nolabels = 1;
+				_opt_readlabels = 1;
+				break;
 			case 'a':
 				opt_access = optarg;
+				_opt_gotlabel = 1;
 				break;
 			case 'e':
 				opt_exec = optarg;
+				_opt_gotlabel = 1;
 				break;
 			case 'm':
 				opt_mmap = optarg;
+				_opt_gotlabel = 1;
 				break;
 			case 't':
 				opt_transmute = optarg;
+				_opt_gotlabel = 1;
 				break;
 		};
 	}
@@ -81,6 +110,83 @@ static void checkargs(int argc, char **argv)
 	}
 
 	opt_argstart = optind;
+
+	if (_opt_nolabels && _opt_gotlabel) {
+		fprintf(stderr, "%s: one or more of the provided parameters "
+		        "exclude each other.\n", argv[0]);
+		exit(1);
+	}
+
+	if (_opt_singlefile && (argc - optind) != 1) {
+		fprintf(stderr, "%s: the provided options can only be used "
+		        "on one file at a time.\n", argv[0]);
+		exit(1);
+	}
+}
+
+static char *dupcontent(char *from)
+{
+	char *end;
+	while (*from && *from != '=')
+		++from;
+	if (*from != '=')
+		return NULL;
+	++from;
+	end = from;
+	while (*end &&
+	       *end != '\r' &&
+	       *end != '\n' &&
+	       *end != '\t' &&
+	       *end != '\f' &&
+	       *end != ' ')
+		++end;
+	*end = 0;
+	if (!*from)
+		return NULL;
+	return strdup(from);
+}
+
+static void readlabels(const char *arg0)
+{
+	char *line = NULL;
+	size_t len = 0;
+
+	while (getline(&line, &len, stdin) != -1)
+	{
+		if(!opt_access && 0 == strncmp(line, "access=", 7)) {
+			opt_access = dupcontent(line);
+		}
+		else if (!opt_exec && 0 == strncmp(line, "execute=", 8)) {
+			opt_exec = dupcontent(line);
+		}
+		else if (!opt_mmap && 0 == strncmp(line, "mmap=", 5)) {
+			opt_mmap = dupcontent(line);
+		}
+		else if (!opt_transmute && 0 == strncmp(line, "transmute=", 10)) {
+			opt_transmute = dupcontent(line);
+		}
+		else {
+			fprintf(stderr, "%s: invalid input line: `%s'\n",
+			        arg0, line);
+			free(line);
+			line = NULL;
+			len = 0;
+			exit(1);
+		}
+	}
+	if (line)
+		free(line);
+}
+
+static inline void showlabel(int rc, const char *label, const char *content)
+{
+	if (opt_store) {
+		if (rc > 0)
+			printf("%s=%s\n", label, content);
+		else
+			printf("%s=\n", label);
+	} else if (rc > 0)
+		printf(" %s=\"%s\"", label, content);
 }
 
 int main(int argc, char **argv)
@@ -96,6 +202,8 @@ int main(int argc, char **argv)
 	int     (*remxa)(const char*, const char*) = &removexattr;
 
 	checkargs(argc, argv);
+	if (_opt_readlabels)
+		readlabels(argv[0]);
 
 	if (opt_access && strlen(opt_access) >= SMACK_SIZE) {
 		fprintf(stderr, "%s: Access label `%s' exceeds %d characters.\n",
@@ -140,7 +248,6 @@ int main(int argc, char **argv)
 	}
 
 	justprint = !opt_access && !opt_exec && !opt_mmap && !opt_transmute;
-	//addfile = (opt_argstart+1 != argc);
 
 	if (opt_link) {
 		getxa = &lgetxattr;
@@ -150,36 +257,37 @@ int main(int argc, char **argv)
 	for (i = opt_argstart; i < argc; ++i)
 	{
 		if (justprint) {
-			//if (addfile)
-			printf("%s:", argv[i]);
+			if (!opt_store)
+				printf("%s:", argv[i]);
 			rc = getxa(argv[i], XATTR_NAME_SMACK, buffer,
 			               sizeof(buffer));
-			if (rc > 0) {
+			if (rc >= 0)
 				buffer[rc] = 0;
-				printf(" access=\"%s\"", buffer);
-			}
+			showlabel(rc, "access", buffer);
+
 			rc = getxa(argv[i], XATTR_NAME_SMACKEXEC, buffer,
 			               sizeof(buffer));
-			if (rc > 0) {
+			if (rc >= 0)
 				buffer[rc] = 0;
-				printf(" execute=\"%s\"", buffer);
-			}
+			showlabel(rc, "execute", buffer);
+
 			rc = getxa(argv[i], XATTR_NAME_SMACKMMAP, buffer,
 			               sizeof(buffer));
-			if (rc > 0) {
+			if (rc >= 0)
 				buffer[rc] = 0;
-				printf(" mmap=\"%s\"", buffer);
-			}
+			showlabel(rc, "mmap", buffer);
+
 			rc = getxa(argv[i], XATTR_NAME_SMACKTRANSMUTE, buffer,
 			               sizeof(buffer));
-			if (rc > 0) {
+			if (rc >= 0)
 				buffer[rc] = 0;
-				printf(" transmute=\"%s\"", buffer);
-			}
-			printf("\n");
+			showlabel(rc, "transmute", buffer);
+			if (!opt_store)
+				printf("\n");
 			continue;
 		}
-		if (opt_access) {
+		if (opt_access && *opt_access)
+		{
 			rc = setxa(argv[i], XATTR_NAME_SMACK,
 			               opt_access, strlen(opt_access), 0);
 			if (rc < 0)
@@ -187,7 +295,16 @@ int main(int argc, char **argv)
 				        argv[i], XATTR_NAME_SMACK,
 				        strerror(errno));
 		}
-		if (opt_exec) {
+		else if (opt_restore || (opt_access && !*opt_access))
+		{
+			rc = remxa(argv[i], XATTR_NAME_SMACK);
+			if (rc < 0 && errno != ENOATTR)
+				fprintf(stderr, "%s (%s): %s\n",
+				        argv[i], XATTR_NAME_SMACK,
+				        strerror(errno));
+		}
+		if (opt_exec && *opt_exec)
+		{
 			rc = setxa(argv[i], XATTR_NAME_SMACKEXEC,
 			               opt_exec, strlen(opt_exec), 0);
 			if (rc < 0)
@@ -195,7 +312,16 @@ int main(int argc, char **argv)
 				        argv[i], XATTR_NAME_SMACKEXEC,
 				        strerror(errno));
 		}
-		if (opt_mmap) {
+		else if (opt_restore || (opt_exec && !*opt_exec))
+		{
+			rc = remxa(argv[i], XATTR_NAME_SMACKEXEC);
+			if (rc < 0 && errno != ENOATTR)
+				fprintf(stderr, "%s (%s): %s\n",
+				        argv[i], XATTR_NAME_SMACKEXEC,
+				        strerror(errno));
+		}
+		if (opt_mmap && *opt_mmap)
+		{
 			rc = setxa(argv[i], XATTR_NAME_SMACKMMAP,
 			               opt_mmap, strlen(opt_mmap), 0);
 			if (rc < 0)
@@ -203,13 +329,30 @@ int main(int argc, char **argv)
 				        argv[i], XATTR_NAME_SMACKMMAP,
 				        strerror(errno));
 		}
-		if (opt_transmute) {
+		else if (opt_restore || (opt_mmap && !*opt_mmap))
+		{
+			rc = remxa(argv[i], XATTR_NAME_SMACKMMAP);
+			if (rc < 0 && errno != ENOATTR)
+				fprintf(stderr, "%s (%s): %s\n",
+				        argv[i], XATTR_NAME_SMACKMMAP,
+				        strerror(errno));
+		}
+		if (opt_transmute)
+		{
 			if (trans)
 				rc = setxa(argv[i], XATTR_NAME_SMACKTRANSMUTE,
 				           trans, strlen(trans), 0);
 			else
 				rc = remxa(argv[i], XATTR_NAME_SMACKTRANSMUTE);
 			if (rc < 0 && (trans || errno != ENOATTR))
+				fprintf(stderr, "%s (%s): %s\n",
+				        argv[i], XATTR_NAME_SMACKTRANSMUTE,
+				        strerror(errno));
+		}
+		else if (opt_restore)
+		{
+			rc = remxa(argv[i], XATTR_NAME_SMACKTRANSMUTE);
+			if (rc < 0 && errno != ENOATTR)
 				fprintf(stderr, "%s (%s): %s\n",
 				        argv[i], XATTR_NAME_SMACKTRANSMUTE,
 				        strerror(errno));

@@ -21,14 +21,15 @@ static int extract(const char *arg0, char **start, char *target)
 	size_t el = 0;
 	char *pos = *start;
 	// Extract subject
-	while (*pos && !isspace(*pos) && el < SMACK_SIZE) {
+	while (*pos && !isspace(*pos) && el < SMACK_SIZE-1) {
 		target[el++] = *pos;
 		++pos;
 	}
 	// Check length
-	if (el == SMACK_SIZE) {
+	if (el == SMACK_SIZE-1) {
 		*pos = 0;
-		fprintf(stderr, "%s: label `%s' exceeds length limit\n", arg0, *start);
+		fprintf(stderr, "%s: label `%s' exceeds length limit\n"
+		        "For long labels there's no need to use this tool\n", arg0, *start);
 		return 0;
 	}
 	// Fill up

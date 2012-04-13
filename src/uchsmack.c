@@ -43,11 +43,11 @@ static int sanelabel(const char *label)
 
 int main(int argc, char **argv)
 {
-	int i;
+	int i, rc;
 	const char *label;
 	size_t labellen;
-	char self[SMACK_SIZE];
-	char filelabel[SMACK_SIZE+1];
+	char self[SMACK_LONGLABEL];
+	char filelabel[SMACK_LONGLABEL];
 	cap_t caps;
 	cap_flag_value_t capvalue = 0;
 	int remove_label = 0;
@@ -136,9 +136,9 @@ int main(int argc, char **argv)
 	}
 
 	labellen = strlen(label);
-	if (labellen >= SMACK_SIZE) {
+	if (labellen >= SMACK_LONGLABEL-1) {
 		fprintf(stderr, "%s: label '%s' exceeds length of %d\n",
-		        argv[0], label, SMACK_SIZE-1);
+		        argv[0], label, SMACK_LONGLABEL-1);
 		exit(1);
 	}
 	for (i = 2; i < argc; ++i) {
@@ -159,10 +159,11 @@ int main(int argc, char **argv)
 		}
 		if (remove_label) {
 			// Check for write-access to the file's label
-			if (fgetxattr(fd, SMACKLABEL, filelabel, sizeof(filelabel)) == -1) {
+			if ( (rc = fgetxattr(fd, SMACKLABEL, filelabel, sizeof(filelabel)-1)) == -1) {
 				perror("getxattr");
 				goto out;
 			}
+			filelabel[rc] = 0;
 			if (!smackaccess(self, filelabel, "w")) {
 				fprintf(stderr, "%s: no write access for '%s' to '%s'\n", argv[0], self, filelabel);
 				goto out;

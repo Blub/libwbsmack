@@ -22,47 +22,16 @@
 
 #include "smack.h"
 
-static int parseaccess(char *access, char *out)
+static void setaccess(int may, char *out)
 {
-	int i;
-
-	out[0] = '-';
-	out[1] = '-';
-	out[2] = '-';
-	out[3] = '-';
-	out[4] = '-';
-	for (i = 0; access[i] != '\0'; i++) {
-		switch (access[i]) {
-		case '-':
-			break;
-		case 'R':
-		case 'r':
-			out[0] = 'r';
-			break;
-		case 'W':
-		case 'w':
-			out[1] = 'w';
-			break;
-		case 'X':
-		case 'x':
-			out[2] = 'x';
-			break;
-		case 'A':
-		case 'a':
-			out[3] = 'a';
-			break;
-		case 'T':
-		case 't':
-			out[4] = 't';
-			break;
-		default:
-			return -1;
-		}
-	}
-	return 0;
+	out[0] = (may & SMACK_MAY_R) ? 'r' : '-';
+	out[1] = (may & SMACK_MAY_W) ? 'w' : '-';
+	out[2] = (may & SMACK_MAY_X) ? 'x' : '-';
+	out[3] = (may & SMACK_MAY_A) ? 'a' : '-';
+	out[4] = (may & SMACK_MAY_T) ? 't' : '-';
 }
 
-int smackaccess2(const char *subject, const char *object, char *access)
+int smackmayaccess2(const char *subject, const char *object, int may)
 {
 	char *buffer;
 	char *accesspart;
@@ -90,12 +59,7 @@ int smackaccess2(const char *subject, const char *object, char *access)
 	strcpy(buffer, subject);
 	strcpy(buffer + sublen + 1, object);
 	accesspart = buffer + sublen + 1 + objlen + 1;
-
-	if (parseaccess(access, accesspart) != 0) {
-		free(buffer);
-		errno = EINVAL;
-		return 0;
-	}
+	setaccess(may, accesspart);
 
 	fd = open(SMACK_ACCESS, O_RDWR);
 	if (fd < 0) {
@@ -125,7 +89,7 @@ int smackaccess2(const char *subject, const char *object, char *access)
 	return (reply[0] == '1') ? 1 : 0;
 }
 
-int smackaccess(const char *subject, const char *object, char *access)
+int smackmayaccess(const char *subject, const char *object, int may)
 {
 	int rc;
 	union {
@@ -140,7 +104,7 @@ int smackaccess(const char *subject, const char *object, char *access)
 	int fd;
 	int i;
 
-	rc = smackaccess2(subject, object, access);
+	rc = smackmayaccess2(subject, object, may);
 	if (!errno)
 		return rc;
 
@@ -164,10 +128,7 @@ int smackaccess(const char *subject, const char *object, char *access)
 
 	strncpy(data.data.subject, subject, sizeof(data.data.subject));
 	strncpy(data.data.object, object, sizeof(data.data.object));
-	if (parseaccess(access, data.data.access) != 0) {
-		errno = EINVAL;
-		return 0;
-	}
+	setaccess(may, data.data.access);
 
 	fd = open(SMACK_ACCESS, O_RDWR);
 	if (fd < 0) {

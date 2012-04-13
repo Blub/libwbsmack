@@ -109,9 +109,10 @@ int main(int argc, char **argv, char **envp)
 	char *binary;
 	char **arglist;
 	char *label = NULL;
-	char filelabel[SMACK_SIZE];
-	char mylabel[SMACK_SIZE];
+	char filelabel[SMACK_LONGLABEL];
+	char mylabel[SMACK_LONGLABEL];
 	int o;
+	int rc;
 	int lind = 0;
 	//int binfd;
 
@@ -142,16 +143,17 @@ int main(int argc, char **argv, char **envp)
 		}
 	}
 
-	if (getsmack(mylabel, sizeof(mylabel)) == -1) {
+	if ((rc = getsmack(mylabel, sizeof(mylabel)-1)) == -1) {
 		fprintf(stderr, "%s: failed to get smack label\n", argv[0]);
 		if (label) free(label);
 		exit(1);
 	}
+	mylabel[rc] = 0;
 
 	if (label) {
-		if (strlen(label) >= SMACK_SIZE) {
+		if (strlen(label) >= SMACK_LONGLABEL-1) {
 			fprintf(stderr, "%s: label '%s' exceeds length of %d\n",
-			        argv[0], label, SMACK_SIZE-1);
+			        argv[0], label, SMACK_LONGLABEL-1);
 			exit(1);
 		}
 		if (!cantransition(argv[0], mylabel, label)) {
@@ -168,25 +170,14 @@ int main(int argc, char **argv, char **envp)
 		exit(1);
 	}
 
-	/*
-	// Open first, then use the open fd to check AS WELL as exec using fexecve
-	// to avoid race conditions between checks.
-	binfd = open(binary, O_RDONLY);
-	if (binfd < 0) {
-		perror("open");
-		free(binary);
-		if (label) free(label);
-		exit(1);
-	}
-	*/
-
 	// Get the program's label
-	if (getxattr(binary, XATTR_NAME_SMACK, filelabel, sizeof(filelabel)) == -1) {
+	if ((rc = getxattr(binary, XATTR_NAME_SMACK, filelabel, sizeof(filelabel)-1)) == -1) {
 		perror("getxattr");
 		if (label) free(label);
 		free(binary);
 		exit(1);
 	}
+	filelabel[rc] = 0;
 
 	// We need to be able to execute the program,
 	// and the label we execute the program AS must also be allowed to execute

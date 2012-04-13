@@ -10,7 +10,7 @@
 
 int getsmack(char *label, size_t n)
 {
-	char rlabel[SMACK_SIZE+1];
+	char rlabel[SMACK_LONGLABEL];
 
 	int rc;
 	int fd;
@@ -41,5 +41,5 @@ int getsmack(char *label, size_t n)
 
 	memcpy(label, rlabel, rc);
 	label[rc] = 0;
-	return 0;
+	return rc;
 }

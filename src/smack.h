@@ -29,6 +29,14 @@
 /* Maximum size of label, including null terminator. */
 #define SMACK_SIZE 24
 #define SMACK_SIZE_STR "24"
+#define SMACK_LONGLABEL 256
+#define SMACK_LONGLABEL_STR_minus1 "255"
+
+#define SMACK_MAY_R (1<<0)
+#define SMACK_MAY_W (1<<1)
+#define SMACK_MAY_X (1<<2)
+#define SMACK_MAY_A (1<<3)
+#define SMACK_MAY_T (1<<4)
 
 struct smackuser {
 	char *su_name; ///< The listed smack username.
@@ -123,10 +131,33 @@ int smackenabled(void);
 
 /**
  * Check if SMACK would allow access.
+ * On error, errno is set to something other than 0.
  *
  * This requires permission to read /smack/load.
  */
 int smackaccess(const char *subject, const char *object, char *access);
+
+/**
+ * Check if SMACK would allow access, try only the long interface (/smack/access2).
+ * On error, errno is set to something other than 0.
+ *
+ * This requires permission to read /smack/load.
+ */
+int smackaccess2(const char *subject, const char *object, char *access);
+
+/**
+ * Check if SMACK would allow access.
+ *
+ * This requires permission to read /smack/load.
+ */
+int smackmayaccess(const char *subject, const char *object, int may);
+
+/**
+ * Check if SMACK would allow access, try only the long interface.
+ *
+ * This requires permission to read /smack/load.
+ */
+int smackmayaccess2(const char *subject, const char *object, int may);
 
 
 /**

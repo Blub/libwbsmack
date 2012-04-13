@@ -12,7 +12,7 @@
 #include <linux/xattr.h>
 #include <errno.h>
 
-#define SMACK_SIZE 24
+#include "smack.h"
 
 static struct option lopts[] = {
 	{ "help",      no_argument,       NULL, 'h' },
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
 	int justprint = 0;
 	//int addfile = 0;
 	const char *trans = NULL;
-	char buffer[SMACK_SIZE];
+	char buffer[SMACK_LONGLABEL];
 
 	ssize_t (*getxa)(const char*, const char*, void*, size_t) = &getxattr;
 	int     (*setxa)(const char*, const char*, const void*, size_t, int) = &setxattr;
@@ -205,19 +205,19 @@ int main(int argc, char **argv)
 	if (_opt_readlabels)
 		readlabels(argv[0]);
 
-	if (opt_access && strlen(opt_access) >= SMACK_SIZE) {
+	if (opt_access && strlen(opt_access) >= SMACK_LONGLABEL-1) {
 		fprintf(stderr, "%s: Access label `%s' exceeds %d characters.\n",
-		        argv[0], opt_access, SMACK_SIZE-1);
+		        argv[0], opt_access, SMACK_LONGLABEL-1);
 		exit(1);
 	}
-	if (opt_exec && strlen(opt_exec) >= SMACK_SIZE) {
+	if (opt_exec && strlen(opt_exec) >= SMACK_LONGLABEL-1) {
 		fprintf(stderr, "%s: Execute label `%s' exceeds %d characters.\n",
 		        argv[0], opt_exec, SMACK_SIZE-1);
 		exit(1);
 	}
-	if (opt_mmap && strlen(opt_mmap) >= SMACK_SIZE) {
+	if (opt_mmap && strlen(opt_mmap) >= SMACK_LONGLABEL-1) {
 		fprintf(stderr, "%s: MMAP label `%s' exceeds %d characters.\n",
-		        argv[0], opt_mmap, SMACK_SIZE-1);
+		        argv[0], opt_mmap, SMACK_LONGLABEL-1);
 		exit(1);
 	}
 

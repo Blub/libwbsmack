@@ -1,29 +1,38 @@
 .\" Process with groff -man -Tascii file.3
 .TH SMACKACCESS 3 2012-04-09 "" "wbSmack Manual"
 .SH NAME
-smackaccess, smackchecktrans \- Check smack access rights
+smackaccess, smackaccess2, smackmayaccess, smackmayaccess2, smackchecktrans \- Check smack access rights
 .SH SYNOPSIS
 .B #include <smack.h>
 .sp
 .BI "int smackaccess(const char *" subject ", const char *" object ", char *" access );
 .sp
+.BI "int smackaccess2(const char *" subject ", const char *" object ", char *" access );
+.sp
+.BI "int smackmayaccess(const char *" subject ", const char *" object ", unsigned" access );
+.sp
+.BI "int smackmayaccess2(const char *" subject ", const char *" object ", unsigned" access );
+.sp
 .BI "int smackchecktrans(const char *" subject, ", const char *" object );
 .sp
 Link with \fI-lwbsmack\fP.
 .SH DESCRIPTION
-.BR smackaccess ()
-uses smackfs'
+.BR smackaccess (), smackmayaccess()
+use smackfs'
 .I /smack/access
-interface to check if the
-.I subject
-has
-.B all
-the access rights on
-.I object
-specified in
-.I access
-, which can be a string containings any of the letters
+interface to check if the \fIsubject\fR has \fBall requested\fR access rights on the \fIobject\fR.
+.sp
+.BR smackaccess ()
+uses a textual permission representation, which can be a string containings any of the letters
 r, w, x, a, t (case insensitive).
+.sp
+.BR smackmayaccess ()
+uses a bitmask of the following flags:
+.I SMACK_MAY_R, MACK_MAY_W, SMACK_MAY_X, SMACK_MAY_A, SMACK_MAY_T
+.sp
+the variants with a 2 suffix will use the new
+.I /etc/smack/access2
+interface and support labels longer than 24 characters.
 .PP
 .BR smackchecktrans ()
 reads the transition-related files in

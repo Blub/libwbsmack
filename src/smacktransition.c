@@ -11,8 +11,8 @@
 #include "smack.h"
 
 typedef struct rule_s {
-	char subject[SMACK_SIZE];
-	char object[SMACK_SIZE];
+	char subject[SMACK_LONGLABEL];
+	char object[SMACK_LONGLABEL];
 	struct rule_s *next;
 } rule_t;
 
@@ -79,12 +79,9 @@ static void readtransfile(const char *filename,
 	char *line = NULL;
 	size_t n = 0;
 	FILE *fp;
-	char linesub[SMACK_SIZE+1];
-	char lineobj[SMACK_SIZE+1];
+	char linesub[SMACK_LONGLABEL];
+	char lineobj[SMACK_LONGLABEL];
 	char _filename[1024];
-
-	linesub[SMACK_SIZE] = 0;
-	lineobj[SMACK_SIZE] = 0;
 
 #ifdef SMACK_TRANSITION_FILE
 	if (is_nondirfile)
@@ -126,8 +123,8 @@ static void readtransfile(const char *filename,
 			continue;
 		// read the rule
 		if (sscanf(line,
-		           " %" SMACK_SIZE_STR
-		           "[a-zA-Z0-9_-] -> %" SMACK_SIZE_STR
+		           " %" SMACK_LONGLABEL_STR_minus1
+		           "[a-zA-Z0-9_-] -> %" SMACK_LONGLABEL_STR_minus1
 		           "[a-zA-Z0-0_-] ",
 		           linesub, lineobj) != 2)
 		{

@@ -41,7 +41,7 @@ LIB_SOURCES = src/getsmack.c \
               src/setsmack.c \
               src/smackenabled.c
 LIB_SOURCES_S = \
-              src/smackaccess.c \
+              src/smackaccess.c src/smackmayaccess.c \
               src/smacktransition.c
 LIB_OBJECTS = $(patsubst %.c,%.o,${LIB_SOURCES})
 LIB_OBJECTS_S = $(patsubst %.c,%.o,${LIB_SOURCES_S})
@@ -208,6 +208,9 @@ ifneq ($(NODOC), 1)
 	install    -m644 doc/opensmackentry.3 $(DESTDIR)$(MANDIR)/man3/
 	install    -m644 doc/smackaccess.3    $(DESTDIR)$(MANDIR)/man3/
 	ln -sf smackaccess.3 $(DESTDIR)$(MANDIR)/man3/smackchecktrans.3
+	ln -sf smackaccess.3 $(DESTDIR)$(MANDIR)/man3/smackaccess2.3
+	ln -sf smackaccess.3 $(DESTDIR)$(MANDIR)/man3/smackmayaccess.3
+	ln -sf smackaccess.3 $(DESTDIR)$(MANDIR)/man3/smackmayaccess2.3
 	install    -m644 doc/smackenabled.3   $(DESTDIR)$(MANDIR)/man3/
 	ln -sf opensmackentry.3 $(DESTDIR)$(MANDIR)/man3/smackentryget.3
 	ln -sf opensmackentry.3 $(DESTDIR)$(MANDIR)/man3/smackentrycontains.3

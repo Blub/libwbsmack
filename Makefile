@@ -50,6 +50,10 @@ PAM_SMACK = pam_wbsmack.so
 PAM_SMACKSRC = pam/pam_wbsmack.c
 PAM_SMACKOBJ = $(patsubst %.c,%.o,${PAM_SMACKSRC})
 
+GENLOAD = smackgenload
+GENLOADSRC = src/genload.c
+GENLOADOBJ = $(patsubst %.c,%.o,${GENLOADSRC})
+
 UCHSMACK = uchsmack
 UCHSMACKSRC = src/uchsmack.c
 UCHSMACKOBJ = $(patsubst %.c,%.o,${UCHSMACKSRC})
@@ -75,7 +79,7 @@ UNROOTSRC = src/unroot.c
 UNROOTOBJ = $(patsubst %.c,%.o,${UNROOTSRC})
 
 BINARIES := $(SMACKCIPSO) $(SMACKLOAD) \
-            $(CHSMACK) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
+            $(CHSMACK) $(GENLOAD) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
 PAMLIBS := $(PAM_SMACK)
 LIBRAREIS := $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
 
@@ -117,6 +121,13 @@ ifeq ($(STATIC), 1)
 	$(CC) $(LDFLAGS) -static -o $@ $(CHSMACKOBJ)
 else
 	$(CC) $(LDFLAGS) -o $@ $(CHSMACKOBJ)
+endif
+
+$(GENLOAD): $(GENLOADOBJ)
+ifeq ($(STATIC), 1)
+	$(CC) $(LDFLAGS) -static -o $@ $(GENLOADOBJ)
+else
+	$(CC) $(LDFLAGS) -o $@ $(GENLOADOBJ)
 endif
 
 $(UCHSMACK): $(UCHSMACKOBJ) $(LIB_SHARED) $(LIB_ACCESS) $(LIB_STATIC)
@@ -172,7 +183,9 @@ install-$(SMACKLOAD): $(SMACKLOAD) install-sbindir
 install-$(SMACKCIPSO): $(SMACKCIPSO) install-sbindir
 	install    -m755 $(SMACKCIPSO) $(DESTDIR)$(SBINDIR)/
 install-$(CHSMACK): $(CHSMACK) install-bindir
-	install    -m755 $(CHSMACK)   $(DESTDIR)$(PREFIX)/bin/
+	install    -m755 $(CHSMACK)    $(DESTDIR)$(PREFIX)/bin/
+install-$(GENLOAD): $(GENLOAD) install-bindir
+	install    -m755 $(GENLOAD)    $(DESTDIR)$(PREFIX)/bin/
 install-$(UCHSMACK): $(UCHSMACK) install-bindir
 	install    -m755 $(UCHSMACK)   $(DESTDIR)$(PREFIX)/bin/
 install-$(USMACKEXEC): $(USMACKEXEC) install-bindir
@@ -185,6 +198,7 @@ ifneq ($(NODOC), 1)
 	install -d -m755                      $(DESTDIR)$(MANDIR)/man1
 	install    -m644 doc/chsmack.8        $(DESTDIR)$(MANDIR)/man1/
 	install    -m644 doc/uchsmack.1       $(DESTDIR)$(MANDIR)/man1/
+	install    -m644 doc/smackgenload.1   $(DESTDIR)$(MANDIR)/man1/
 	install    -m644 doc/usmackexec.1     $(DESTDIR)$(MANDIR)/man1/
 	install -d -m755                      $(DESTDIR)$(MANDIR)/man8
 	install    -m644 doc/unroot.8         $(DESTDIR)$(MANDIR)/man8/
@@ -205,7 +219,7 @@ clean:
 	-rm -f $(LIB_SHARED) $(LIB_STATIC) $(LIB_ACCESS)
 	-rm -f $(PAM_SMACK)
 	-rm -f $(SMACKLOAD) $(SMACKCIPSO) $(CHSMACK)
-	-rm -f $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
+	-rm -f $(GENLOAD) $(UCHSMACK) $(USMACKEXEC) $(UNROOT)
 	-rm -f pam/*.o src/*.o old-util/*.o
 
 -include src/*.d

@@ -8,8 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
-#include <sys/xattr.h>
+#include <attr/xattr.h>
 #include <linux/xattr.h>
+#include <errno.h>
 
 #define SMACK_SIZE 24
 
@@ -92,6 +93,7 @@ int main(int argc, char **argv)
 
 	ssize_t (*getxa)(const char*, const char*, void*, size_t) = &getxattr;
 	int     (*setxa)(const char*, const char*, const void*, size_t, int) = &setxattr;
+	int     (*remxa)(const char*, const char*) = &removexattr;
 
 	checkargs(argc, argv);
 
@@ -126,7 +128,7 @@ int main(int argc, char **argv)
 		         !strcmp(opt_transmute, "f") ||
 		         !strcmp(opt_transmute, "F") )
 		{
-			trans = "FALSE";
+			trans = NULL; // gets removed in this case "FALSE";
 		}
 		else
 		{
@@ -143,6 +145,7 @@ int main(int argc, char **argv)
 	if (opt_link) {
 		getxa = &lgetxattr;
 		setxa = &lsetxattr;
+		remxa = &lremovexattr;
 	}
 	for (i = opt_argstart; i < argc; ++i)
 	{
@@ -178,27 +181,38 @@ int main(int argc, char **argv)
 		}
 		if (opt_access) {
 			rc = setxa(argv[i], XATTR_NAME_SMACK,
-			               opt_access, strlen(opt_access) + 1, 0);
+			               opt_access, strlen(opt_access), 0);
 			if (rc < 0)
-				perror(argv[i]);
+				fprintf(stderr, "%s (%s): %s\n",
+				        argv[i], XATTR_NAME_SMACK,
+				        strerror(errno));
 		}
 		if (opt_exec) {
 			rc = setxa(argv[i], XATTR_NAME_SMACKEXEC,
-			               opt_exec, strlen(opt_exec) + 1, 0);
+			               opt_exec, strlen(opt_exec), 0);
 			if (rc < 0)
-				perror(argv[i]);
+				fprintf(stderr, "%s (%s): %s\n",
+				        argv[i], XATTR_NAME_SMACKEXEC,
+				        strerror(errno));
 		}
 		if (opt_mmap) {
 			rc = setxa(argv[i], XATTR_NAME_SMACKMMAP,
-			               opt_mmap, strlen(opt_mmap) + 1, 0);
+			               opt_mmap, strlen(opt_mmap), 0);
 			if (rc < 0)
-				perror(argv[i]);
+				fprintf(stderr, "%s (%s): %s\n",
+				        argv[i], XATTR_NAME_SMACKMMAP,
+				        strerror(errno));
 		}
-		if (trans) {
-			rc = setxa(argv[i], XATTR_NAME_SMACKTRANSMUTE,
-			               trans, strlen(trans) + 1, 0);
-			if (rc < 0)
-				perror(argv[i]);
+		if (opt_transmute) {
+			if (trans)
+				rc = setxa(argv[i], XATTR_NAME_SMACKTRANSMUTE,
+				           trans, strlen(trans), 0);
+			else
+				rc = remxa(argv[i], XATTR_NAME_SMACKTRANSMUTE);
+			if (rc < 0 && (trans || errno != ENOATTR))
+				fprintf(stderr, "%s (%s): %s\n",
+				        argv[i], XATTR_NAME_SMACKTRANSMUTE,
+				        strerror(errno));
 		}
 	}
 	exit(0);

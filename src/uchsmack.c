@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <attr/xattr.h>
 #include <linux/xattr.h>
+#include <errno.h>
 
 #include "smack.h"
 
@@ -160,7 +161,7 @@ int main(int argc, char **argv)
 		if (remove_label) {
 			// Check for write-access to the file's label
 			if ( (rc = fgetxattr(fd, SMACKLABEL, filelabel, sizeof(filelabel)-1)) == -1) {
-				perror("getxattr");
+				fprintf(stdout, "getxattr %s: %s\n", argv[i], strerror(errno));
 				goto out;
 			}
 			filelabel[rc] = 0;
@@ -170,7 +171,7 @@ int main(int argc, char **argv)
 			}
 			// If the test passes we can remove the label
 			if (fremovexattr(fd, SMACKLABEL) == -1) {
-				perror("removexattr");
+				fprintf(stdout, "removexattr %s: %s\n", argv[i], strerror(errno));
 				goto out;
 			}
 		}
@@ -178,7 +179,7 @@ int main(int argc, char **argv)
 		{
 			// Update the SMACK label
 			if (fsetxattr(fd, SMACKLABEL, label, labellen, 0) == -1) {
-				perror("setxattr");
+				fprintf(stdout, "setxattr %s: %s\n", argv[i], strerror(errno));
 				goto out;
 			}
 		}

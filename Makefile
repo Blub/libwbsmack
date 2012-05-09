@@ -8,7 +8,7 @@ PREFIX := /usr
 ETCDIR := /etc
 MANDIR := /usr/share/man
 SBINDIR := /sbin
-PAMPREFIX := /
+PAMPREFIX := $(PREFIX)
 
 DESTDIR :=
 

@@ -147,5 +147,6 @@ struct smackentry* opensmackentry(const char *username)
 	}
 
 	free(line);
+	fclose(fp);
 	return entry;
 }

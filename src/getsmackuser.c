@@ -110,5 +110,6 @@ int getsmackuser_r(const char *username, struct smackuser *out,
 	}
 
 	free(line);
+	fclose(fp);
 	return retval;
 }

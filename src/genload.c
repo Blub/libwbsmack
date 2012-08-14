@@ -42,7 +42,8 @@ static int extract(const char *arg0, char **start, char *target)
 int main(int argc, char **argv)
 {
 	char *line = NULL;
-	size_t len = 0;
+	size_t alen = 0;
+	ssize_t len;
 	int result = 0;
 
 	struct {
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
 		usage(argv[0], stdout, 1);
 	}
 
-	while (getline(&line, &len, stdin) != -1)
+	while ((len = getline(&line, &alen, stdin)) >= 0)
 	{
 		int err;
 		size_t i;

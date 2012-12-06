@@ -73,6 +73,9 @@ static int cantransition(const char *arg0, const char *mylabel, const char *labe
 	struct passwd *pwd;
 	struct smackentry *myentry;
 
+	if (!getuid() && !geteuid())
+		return 1;
+
 	if (!smackaccess(mylabel, label, "x")) {
 		fprintf(stderr, "%s: do not have execute permissions for '%s'\n",
 		        arg0, label);

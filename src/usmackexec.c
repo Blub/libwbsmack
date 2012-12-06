@@ -114,6 +114,7 @@ int main(int argc, char **argv, char **envp)
 	int o;
 	int rc;
 	int lind = 0;
+	int doexec = 0;
 	//int binfd;
 
 	static struct option lopts[] = {
@@ -123,10 +124,13 @@ int main(int argc, char **argv, char **envp)
 		{ NULL, 0, NULL, 0}
 	};
 
-	while ( (o = getopt_long(argc, argv, "+hl:", lopts, &lind)) != -1) {
+	while ( (o = getopt_long(argc, argv, "+hxl:", lopts, &lind)) != -1) {
 		switch (o) {
 			case 'h':
 				usage(argv[0], stdout, 0);
+				break;
+			case 'x':
+				doexec = 1;
 				break;
 			case 'l':
 				if (label) {
@@ -209,6 +213,7 @@ int main(int argc, char **argv, char **envp)
 		exit(1);
 	}
 
+	if (!doexec)
 	{
 		pid_t pid = fork();
 		if (pid) {
@@ -219,9 +224,9 @@ int main(int argc, char **argv, char **envp)
 			}
 			exit(WEXITSTATUS(st));
 		}
-		if (getuid() != geteuid())
-			seteuid(getuid());
 	}
+	if (getuid() != geteuid())
+		seteuid(getuid());
 
 
 	// Prepare parameters:
